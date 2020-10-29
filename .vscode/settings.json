@@ -1,0 +1,11 @@
+{
+    "files.exclude": {
+        ".next/": true,
+        ".vscode/": true
+    },
+    "cSpell.words": [
+        "fontawesome",
+        "fortawesome",
+        "xstate"
+    ]
+}
