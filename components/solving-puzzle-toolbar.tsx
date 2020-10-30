@@ -6,7 +6,7 @@ import { ToolbarButton } from "./toolbar-button";
 import { ToolbarLabel } from "./toolbar-label";
 import { RovingTabIndexProvider } from "react-roving-tabindex";
 import { ToolbarButtonWithRovingTabIndex } from "./toolbar-button-with-roving-tab-index";
-import { CellValue } from "domain/types";
+import { CellDigit } from "domain/sudoku-puzzle.types";
 
 const INDICES: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -37,7 +37,7 @@ export const SolvingPuzzleToolbar: FC<Props> = ({
                 send({
                   type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT",
                   // TODO find a way around this cast:
-                  payload: { digit: (index + 1) as CellValue },
+                  payload: { digit: (index + 1) as CellDigit },
                 })
               }
             />

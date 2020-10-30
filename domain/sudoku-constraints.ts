@@ -7,7 +7,23 @@ import {
   CellCollection,
   ConstraintCollection,
   IConstraint,
-} from "./types";
+} from "./sudoku-puzzle.types";
+
+// Includes given digits.
+function getInvalidCellsForCellGroup(cells: CellCollection): CellCollection {
+  return (
+    chain(cells)
+      // Remove cells not filled in:
+      .filter((cell) => !!cell.digit)
+      // Group by digit:
+      .groupBy((cell) => cell.digit)
+      // Keep groups with more than one cell for a digit:
+      .filter((value) => value.length > 1)
+      // Turn back into an array:
+      .flatten()
+      .value()
+  );
+}
 
 export class BoxConstraint implements IConstraint {
   readonly boxIndex: number;
@@ -24,7 +40,7 @@ export class BoxConstraint implements IConstraint {
   getConstraintCells(cells: CellCollection, cell: Cell): CellCollection {
     const boxCells = this.getBoxCells(cells);
     const removed = remove(boxCells, (boxCell) => boxCell.index === cell.index);
-    return removed.length ? boxCells : null;
+    return removed.length ? boxCells : [];
   }
 
   private getBoxCells(cells: CellCollection): CellCollection {
@@ -63,7 +79,7 @@ export class ColumnConstraint implements IConstraint {
       columnCells,
       (columnCell) => columnCell.index === cell.index
     );
-    return removed.length ? columnCells : null;
+    return removed.length ? columnCells : [];
   }
 
   private getColumnCells(cells: CellCollection): CellCollection {
@@ -78,10 +94,6 @@ export class RowConstraint implements IConstraint {
     this.rowIndex = rowIndex;
   }
 
-  //   affectsCell(cell: Cell): boolean {
-  //     return Math.floor(cell.index / 9) === this.rowIndex;
-  //   }
-
   getInvalidCells(cells: CellCollection): CellCollection {
     const rowCells = this.getRowCells(cells);
     return getInvalidCellsForCellGroup(rowCells);
@@ -90,50 +102,12 @@ export class RowConstraint implements IConstraint {
   getConstraintCells(cells: CellCollection, cell: Cell): CellCollection {
     const rowCells = this.getRowCells(cells);
     const removed = remove(rowCells, (rowCell) => rowCell.index === cell.index);
-    return removed.length ? rowCells : null;
+    return removed.length ? rowCells : [];
   }
 
   private getRowCells(cells: CellCollection): CellCollection {
     return slice(cells, this.rowIndex * 9, this.rowIndex * 9 + 9);
   }
-}
-
-function getInvalidCellsForCellGroup(cells: CellCollection): CellCollection {
-  return (
-    chain(cells)
-      // Remove cells not filled in:
-      .filter((cell) => !!cell.digit)
-      // Group by digit:
-      .groupBy((cell) => cell.digit)
-      // Keep groups with more than one cell for a digit:
-      .filter((value) => value.length > 1)
-      // Turn back into an array:
-      .flatten()
-      .value()
-  );
-}
-
-export function getInvalidCells(
-  constraints: ConstraintCollection,
-  cells: CellCollection
-): CellCollection {
-  return chain(constraints)
-    .map((constraint) => constraint.getInvalidCells(cells))
-    .flatten()
-    .uniqBy((cell) => cell.index)
-    .value();
-}
-
-export function getConstraintCellsForCell(
-  constraints: ConstraintCollection,
-  cells: CellCollection,
-  cell: Cell
-): CellCollection {
-  return chain(constraints)
-    .map((constraint) => constraint.getConstraintCells(cells, cell))
-    .flatten()
-    .uniqBy((cell) => cell.index)
-    .value();
 }
 
 export const STANDARD_SUDOKU_CONSTRAINTS: ConstraintCollection = [

@@ -1,24 +1,8 @@
-import range from "lodash/range";
 import slice from "lodash/slice";
 import { actions, assign, createMachine } from "xstate";
-import { STANDARD_SUDOKU_CONSTRAINTS } from "domain/constraints";
-import {
-  createCellCollectionFromPuzzleString,
-  isValidPuzzleString,
-} from "domain/puzzle-string";
-import {
-  addGivenDigitToCell,
-  addGuessDigitToCell,
-  clearAllHighlights,
-  resetCell,
-  createInitialCellCollection,
-  hasHighlighting,
-  highlightAllCellsForDigit,
-  highlightAllCellsWithErrors,
-  isSolved,
-  isValidPuzzle,
-  clearAllMarkingUp,
-} from "domain/grid";
+import { STANDARD_SUDOKU_CONSTRAINTS } from "domain/sudoku-constraints";
+import { isValidPuzzleString } from "domain/sudoku-puzzle-string";
+import * as puzzle from "domain/sudoku-puzzle";
 import {
   PuzzleContext,
   PuzzleError,
@@ -39,10 +23,10 @@ export function getCanRedo(ctx: PuzzleContext): boolean {
 }
 
 export function getHasCheckpoint(ctx: PuzzleContext): boolean {
-  return !!ctx.checkpointCells && !!ctx.checkpointCells.length;
+  return !!ctx.checkpointPuzzle;
 }
 
-function pushCurrentCellsToUndoStack(ctx: PuzzleContext) {
+function pushCurrentPuzzleStateToUndoStack(ctx: PuzzleContext) {
   const MAX_UNDO_STACK_LENGTH = 100;
   const newUndoStack = slice(
     ctx.undoStack,
@@ -50,26 +34,18 @@ function pushCurrentCellsToUndoStack(ctx: PuzzleContext) {
       ? ctx.undoStack.length - (MAX_UNDO_STACK_LENGTH - 1)
       : 0
   );
-  newUndoStack.push(ctx.cells);
+  newUndoStack.push(ctx.puzzle);
   return newUndoStack;
 }
 
 // todo
-// - adding a big guess number must clear all pencil digits in constraints?
-//    - Auto-clear pencil marks
 // - completing a number should do something?
 
 export function createSudokuPuzzleMachine() {
   return createMachine<PuzzleContext, PuzzleEvent, PuzzleTypestate>(
     {
-      initial: "initialising",
+      initial: "enteringPuzzle",
       states: {
-        initialising: {
-          always: {
-            target: "enteringPuzzle",
-            actions: "resetAll",
-          },
-        },
         enteringPuzzle: {
           on: {
             REQUEST_CLEAR_CELL: { actions: ["createUndoState", "resetCell"] },
@@ -107,7 +83,7 @@ export function createSudokuPuzzleMachine() {
             },
             DIGIT_ENTERED: {
               cond: "eventIsNotForGivenDigitCell",
-              actions: ["createUndoState", "addDigitToCell"],
+              actions: ["createUndoState", "addOrRemoveGuessDigit"],
             },
             REQUEST_RESET_PUZZLE: {
               actions: ["createUndoState", "clearAllMarkingUp"],
@@ -155,27 +131,27 @@ export function createSudokuPuzzleMachine() {
     {
       actions: {
         resetAll: assign<PuzzleContext, PuzzleEvent>({
-          cells: createInitialCellCollection(),
+          puzzle: puzzle.createPuzzle(STANDARD_SUDOKU_CONSTRAINTS),
           undoStack: [],
           redoStack: [],
-          checkpointCells: null,
+          checkpointPuzzle: null,
           errorState: null,
         }),
         resetPuzzle: assign<PuzzleContext, PuzzleEvent>({
-          cells: createInitialCellCollection(),
+          puzzle: puzzle.createPuzzle(STANDARD_SUDOKU_CONSTRAINTS),
         }),
         createUndoState: assign<PuzzleContext, PuzzleEvent>({
-          undoStack: pushCurrentCellsToUndoStack,
+          undoStack: pushCurrentPuzzleStateToUndoStack,
           redoStack: [],
         }),
         undo: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) => ctx.undoStack[ctx.undoStack.length - 1],
+          puzzle: (ctx) => ctx.undoStack[ctx.undoStack.length - 1],
           undoStack: (ctx) => slice(ctx.undoStack, 0, -1),
-          redoStack: (ctx) => [...ctx.redoStack, ctx.cells],
+          redoStack: (ctx) => [...ctx.redoStack, ctx.puzzle],
         }),
         redo: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) => ctx.redoStack[ctx.redoStack.length - 1],
-          undoStack: (ctx) => [...ctx.undoStack, ctx.cells],
+          puzzle: (ctx) => ctx.redoStack[ctx.redoStack.length - 1],
+          undoStack: (ctx) => [...ctx.undoStack, ctx.puzzle],
           redoStack: (ctx) => slice(ctx.redoStack, 0, -1),
         }),
         setErrorStateToInvalidPuzzle: assign<PuzzleContext, PuzzleEvent>({
@@ -185,49 +161,53 @@ export function createSudokuPuzzleMachine() {
           errorState: () => ({ error: PuzzleError.PUZZLE_NOT_SOLVED }),
         }),
         clearAllMarkingUp: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) => clearAllMarkingUp(ctx.cells),
+          puzzle: (ctx) => puzzle.clearAllMarkingUp(ctx.puzzle),
         }),
         resetCell: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx, event: RequestClearCellEvent) =>
-            resetCell(ctx.cells, event.payload.index),
+          puzzle: (ctx, event: RequestClearCellEvent) =>
+            puzzle.resetCell(ctx.puzzle, event.payload.index),
         }),
         addGivenDigitToCell: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx, event: DigitEnteredEvent) => {
+          puzzle: (ctx, event: DigitEnteredEvent) => {
             const { index, digit } = event.payload;
-            return addGivenDigitToCell(ctx.cells, index, digit);
+            return puzzle.addGivenDigitToCell(ctx.puzzle, index, digit);
           },
         }),
         setPuzzleFromPuzzleString: assign<PuzzleContext, PuzzleEvent>({
-          cells: (_, event: RequestSetPuzzleFromPuzzleStringEvent) =>
-            createCellCollectionFromPuzzleString(event.payload.puzzleString),
+          puzzle: (_, event: RequestSetPuzzleFromPuzzleStringEvent) =>
+            puzzle.createPuzzleFromPuzzleString(event.payload.puzzleString),
         }),
-        addDigitToCell: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx, event: DigitEnteredEvent) => {
-            const { index, digit, ctrlKey } = event.payload;
-            return addGuessDigitToCell(ctx.cells, index, digit, !ctrlKey);
+        addOrRemoveGuessDigit: assign<PuzzleContext, PuzzleEvent>({
+          puzzle: (ctx, event: DigitEnteredEvent) => {
+            const { index, digit, isPencilDigit } = event.payload;
+            return puzzle.addOrRemoveGuessDigit(
+              ctx.puzzle,
+              index,
+              digit,
+              isPencilDigit,
+              true
+            );
           },
         }),
         saveCheckpoint: assign<PuzzleContext, PuzzleEvent>({
-          checkpointCells: (ctx) => ctx.cells,
+          checkpointPuzzle: (ctx) => ctx.puzzle,
         }),
         restoreCheckpoint: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) => ctx.checkpointCells,
+          puzzle: (ctx) => ctx.checkpointPuzzle,
         }),
         clearAllHighlights: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) => clearAllHighlights(ctx.cells),
+          puzzle: (ctx) => puzzle.clearAllHighlights(ctx.puzzle),
         }),
         highlightAllCellsWithErrors: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) =>
-            highlightAllCellsWithErrors(ctx.cells, STANDARD_SUDOKU_CONSTRAINTS),
+          puzzle: (ctx) => puzzle.highlightAllCellsWithErrors(ctx.puzzle),
         }),
         highlightAllCellsForDigit: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx, event: RequestHighlightAllCellsWithDigitEvent) =>
-            highlightAllCellsForDigit(ctx.cells, event.payload.digit),
+          puzzle: (ctx, event: RequestHighlightAllCellsWithDigitEvent) =>
+            puzzle.highlightAllCellsForDigit(ctx.puzzle, event.payload.digit),
         }),
       },
       guards: {
-        isValidPuzzle: (ctx) =>
-          isValidPuzzle(ctx.cells, STANDARD_SUDOKU_CONSTRAINTS),
+        isValidPuzzle: (ctx) => puzzle.isValidPuzzle(ctx.puzzle),
         isValidPuzzleString: (
           _,
           event: RequestSetPuzzleFromPuzzleStringEvent
@@ -235,17 +215,19 @@ export function createSudokuPuzzleMachine() {
         eventIsNotForGivenDigitCell: (
           ctx,
           event: RequestClearCellEvent | DigitEnteredEvent
-        ) => {
-          const cell = ctx.cells[event.payload.index];
-          return !cell.isGivenDigit;
-        },
-        isSolvedPuzzle: (ctx) =>
-          isSolved(ctx.cells, STANDARD_SUDOKU_CONSTRAINTS),
+        ) => !puzzle.puzzleCellIsGivenDigit(ctx.puzzle, event.payload.index),
+        isSolvedPuzzle: (ctx) => puzzle.isSolved(ctx.puzzle),
         canUndo: getCanUndo,
         canRedo: getCanRedo,
         hasCheckpoint: getHasCheckpoint,
-        hasHighlighting: (ctx) => hasHighlighting(ctx.cells),
+        hasHighlighting: (ctx) => puzzle.hasHighlighting(ctx.puzzle),
       },
     }
-  );
+  ).withContext({
+    puzzle: puzzle.createPuzzle(STANDARD_SUDOKU_CONSTRAINTS),
+    undoStack: [],
+    redoStack: [],
+    checkpointPuzzle: null,
+    errorState: null,
+  });
 }

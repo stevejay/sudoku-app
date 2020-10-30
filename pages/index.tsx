@@ -3,6 +3,8 @@ import { useMachine } from "@xstate/react";
 import { Grid } from "components/grid";
 import { Head } from "components/head";
 import { Nav } from "components/nav";
+import { getPuzzleStringFromLocation } from "domain/sudoku-puzzle-string";
+import { createPuzzleUrl } from "domain/sudoku-puzzle";
 import {
   createSudokuPuzzleMachine,
   getCanUndo,
@@ -13,16 +15,12 @@ import { PuzzleEvent } from "machines/sudoku-puzzle-machine.types";
 import { EnteringPuzzleToolbar } from "components/entering-puzzle-toolbar";
 import {
   bindKeyboardShortcuts,
-  KeyboardShortcuts,
-} from "domain/keyboard-shortcuts";
-import {
-  createUrlWithPuzzleString,
-  getPuzzleStringFromLocation,
-} from "domain/puzzle-string";
+  KeyboardShortcutCollection,
+} from "components/keyboard-shortcuts";
 import { ErrorModal } from "components/error-modal";
 import { SolvingPuzzleToolbar } from "components/solving-puzzle-toolbar";
 
-export const KEYBOARD_SHORTCUTS: KeyboardShortcuts<PuzzleEvent> = [
+export const KEYBOARD_SHORTCUTS: KeyboardShortcutCollection<PuzzleEvent> = [
   {
     keys: ["command+z", "ctrl+z"],
     event: { type: "REQUEST_UNDO" },
@@ -60,20 +58,20 @@ const IndexPage = () => {
       <main className="w-full flex flex-grow flex-col sm:flex-row items-center sm:items-start sm:justify-center py-6 sm:py-10 space-y-8 sm:space-y-0 sm:space-x-10">
         {state.value === "enteringPuzzle" && (
           <>
-            <Grid cells={state.context.cells} creating send={send} />
+            <Grid puzzle={state.context.puzzle} creating send={send} />
             <EnteringPuzzleToolbar
               send={send}
               canUndo={canUndo}
               canRedo={canRedo}
               puzzleUrlGenerator={() =>
-                createUrlWithPuzzleString(state.context.cells, window.location)
+                createPuzzleUrl(state.context.puzzle, window.location)
               }
             />
           </>
         )}
         {state.value === "solvingPuzzle" && (
           <>
-            <Grid cells={state.context.cells} creating={false} send={send} />
+            <Grid puzzle={state.context.puzzle} creating={false} send={send} />
             <SolvingPuzzleToolbar
               send={send}
               canUndo={canUndo}

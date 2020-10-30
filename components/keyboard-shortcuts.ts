@@ -6,10 +6,10 @@ export type KeyboardShortcut<TEvent> = Readonly<{
   event: TEvent;
 }>;
 
-export type KeyboardShortcuts<TEvent> = readonly KeyboardShortcut<TEvent>[];
+export type KeyboardShortcutCollection<TEvent> = readonly KeyboardShortcut<TEvent>[];
 
 export function bindKeyboardShortcuts<TEvent>(
-  keyboardShortcuts: KeyboardShortcuts<TEvent>,
+  keyboardShortcuts: KeyboardShortcutCollection<TEvent>,
   send: (event: TEvent, payload?: EventData) => unknown
 ) {
   keyboardShortcuts.map((shortcut) => {

@@ -1,5 +1,5 @@
 import { EventData } from "xstate";
-import { Cell, CellCollection, CellValue } from "domain/types";
+import { CellDigit, SudokuPuzzle } from "domain/sudoku-puzzle.types";
 
 export enum PuzzleError {
   INVALID_PUZZLE = "INVALID_PUZZLE",
@@ -7,10 +7,10 @@ export enum PuzzleError {
 }
 
 export type PuzzleContext = {
-  cells: CellCollection;
-  undoStack: readonly CellCollection[];
-  redoStack: readonly CellCollection[];
-  checkpointCells: CellCollection | null;
+  puzzle: SudokuPuzzle;
+  undoStack: readonly SudokuPuzzle[];
+  redoStack: readonly SudokuPuzzle[];
+  checkpointPuzzle: SudokuPuzzle | null;
   errorState: { error: PuzzleError | null } | null;
 };
 
@@ -22,21 +22,23 @@ export type PuzzleTypestate =
 
 export type RequestClearCellEvent = {
   type: "REQUEST_CLEAR_CELL";
-  payload: { index: Cell["index"] };
+  payload: { index: number };
 };
 export type DigitEnteredEvent = {
   type: "DIGIT_ENTERED";
   payload: {
-    index: Cell["index"];
-    digit: CellValue;
-    ctrlKey: boolean;
+    index: number;
+    digit: CellDigit;
+    isPencilDigit: boolean;
   };
 };
 export type RequestStartEnteringPuzzleEvent = {
   type: "REQUEST_START_ENTERING_PUZZLE";
 };
 export type RequestResetPuzzleEvent = { type: "REQUEST_RESET_PUZZLE" };
-export type RequestStartSolvingPuzzleEvent = { type: "REQUEST_START_SOLVING_PUZZLE" };
+export type RequestStartSolvingPuzzleEvent = {
+  type: "REQUEST_START_SOLVING_PUZZLE";
+};
 export type RequestCheckPuzzleEvent = { type: "REQUEST_CHECK_PUZZLE" };
 export type RequestUndoEvent = { type: "REQUEST_UNDO" };
 export type RequestRedoEvent = { type: "REQUEST_REDO" };
@@ -53,7 +55,7 @@ export type RequestClearAllHighlightsEvent = {
 };
 export type RequestHighlightAllCellsWithDigitEvent = {
   type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT";
-  payload: { digit: CellValue };
+  payload: { digit: CellDigit };
 };
 
 export type PuzzleEvent =

@@ -1,4 +1,4 @@
-import { Cell } from "domain/types";
+import { Cell } from "domain/sudoku-puzzle.types";
 
 export function getBackgroundShadingClass(shading: Cell["shading"]): string {
   switch (shading) {

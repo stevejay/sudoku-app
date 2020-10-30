@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import { useRovingTabIndex, useFocusEffect } from "react-roving-tabindex";
 import { getBackgroundShadingClass } from "./get-background-shading-class";
-import { Cell, CellValue } from "domain/types";
+import { Cell, CellDigit } from "domain/sudoku-puzzle.types";
 import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 
 const Digit: FC<{ cell: Cell }> = ({ cell }) => (
@@ -20,7 +20,7 @@ const Digit: FC<{ cell: Cell }> = ({ cell }) => (
   </p>
 );
 
-const DIGITS: CellValue[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const DIGITS: CellDigit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 const PencilDigits: FC<{ cell: Cell }> = ({ cell }) => (
   <>
@@ -69,8 +69,8 @@ const GridCell: FC<Props> = ({
         type: "DIGIT_ENTERED",
         payload: {
           index: cell.index,
-          digit: parseInt(event.key, 10) as CellValue,
-          ctrlKey: event.ctrlKey,
+          digit: parseInt(event.key, 10) as CellDigit,
+          isPencilDigit: !event.ctrlKey && !event.metaKey && !event.altKey,
         },
       });
     } else if (event.key === "Backspace") {
