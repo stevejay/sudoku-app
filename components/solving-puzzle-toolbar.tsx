@@ -1,4 +1,4 @@
-import { PuzzleSend } from "machines/puzzle-machine.types";
+import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 import React, { FC } from "react";
 import { faUndoAlt } from "@fortawesome/free-solid-svg-icons";
 import { faRedoAlt } from "@fortawesome/free-solid-svg-icons";

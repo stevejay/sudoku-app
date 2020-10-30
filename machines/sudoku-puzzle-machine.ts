@@ -28,7 +28,7 @@ import {
   RequestClearCellEvent,
   RequestHighlightAllCellsWithDigitEvent,
   RequestSetPuzzleFromPuzzleStringEvent,
-} from "./puzzle-machine.types";
+} from "./sudoku-puzzle-machine.types";
 
 export function getCanUndo(ctx: PuzzleContext): boolean {
   return !!ctx.undoStack.length;
@@ -56,9 +56,10 @@ function pushCurrentCellsToUndoStack(ctx: PuzzleContext) {
 
 // todo
 // - adding a big guess number must clear all pencil digits in constraints?
+//    - Auto-clear pencil marks
 // - completing a number should do something?
 
-export function createPuzzleMachine() {
+export function createSudokuPuzzleMachine() {
   return createMachine<PuzzleContext, PuzzleEvent, PuzzleTypestate>(
     {
       initial: "initialising",
@@ -66,7 +67,7 @@ export function createPuzzleMachine() {
         initialising: {
           always: {
             target: "enteringPuzzle",
-            actions: "reset",
+            actions: "resetAll",
           },
         },
         enteringPuzzle: {
@@ -75,7 +76,9 @@ export function createPuzzleMachine() {
             DIGIT_ENTERED: {
               actions: ["createUndoState", "addGivenDigitToCell"],
             },
-            REQUEST_RESET_PUZZLE: { actions: "reset" },
+            REQUEST_RESET_PUZZLE: {
+              actions: ["createUndoState", "resetPuzzleState"],
+            },
             REQUEST_SET_PUZZLE_FROM_PUZZLE_STRING: {
               cond: "isValidPuzzleString",
               target: "validatingPuzzle",
@@ -139,7 +142,7 @@ export function createPuzzleMachine() {
           on: {
             REQUEST_START_ENTERING_PUZZLE: {
               target: "enteringPuzzle",
-              actions: "reset",
+              actions: "resetAll",
             },
           },
         },
@@ -151,12 +154,15 @@ export function createPuzzleMachine() {
     },
     {
       actions: {
-        reset: assign<PuzzleContext, PuzzleEvent>({
+        resetAll: assign<PuzzleContext, PuzzleEvent>({
           cells: createInitialCellCollection(),
           undoStack: [],
           redoStack: [],
           checkpointCells: null,
           errorState: null,
+        }),
+        resetPuzzle: assign<PuzzleContext, PuzzleEvent>({
+          cells: createInitialCellCollection(),
         }),
         createUndoState: assign<PuzzleContext, PuzzleEvent>({
           undoStack: pushCurrentCellsToUndoStack,
@@ -172,14 +178,14 @@ export function createPuzzleMachine() {
           undoStack: (ctx) => [...ctx.undoStack, ctx.cells],
           redoStack: (ctx) => slice(ctx.redoStack, 0, -1),
         }),
-        clearAllMarkingUp: assign<PuzzleContext, PuzzleEvent>({
-          cells: (ctx) => clearAllMarkingUp(ctx.cells),
-        }),
         setErrorStateToInvalidPuzzle: assign<PuzzleContext, PuzzleEvent>({
           errorState: () => ({ error: PuzzleError.INVALID_PUZZLE }),
         }),
         setErrorStateToPuzzleNotSolved: assign<PuzzleContext, PuzzleEvent>({
           errorState: () => ({ error: PuzzleError.PUZZLE_NOT_SOLVED }),
+        }),
+        clearAllMarkingUp: assign<PuzzleContext, PuzzleEvent>({
+          cells: (ctx) => clearAllMarkingUp(ctx.cells),
         }),
         resetCell: assign<PuzzleContext, PuzzleEvent>({
           cells: (ctx, event: RequestClearCellEvent) =>

@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { RovingTabIndexProvider } from "react-roving-tabindex";
 import GridCell from "./grid-cell";
 import { CellCollection } from "domain/types";
-import { PuzzleSend } from "machines/puzzle-machine.types";
+import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 
 const INDICES: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -14,7 +14,7 @@ type Props = {
 
 export const Grid: FC<Props> = ({ cells, creating, send }) => (
   <RovingTabIndexProvider allowFocusOnClick={true}>
-    <table role="grid" className="border-collapse select-none">
+    <table role="grid" className="border-collapse select-none flex-shrink-0">
       <tbody className="border-4 border-gray-500">
         {INDICES.map((rowIndex) => (
           <tr

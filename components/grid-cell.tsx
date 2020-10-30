@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { useRovingTabIndex, useFocusEffect } from "react-roving-tabindex";
 import { getBackgroundShadingClass } from "./get-background-shading-class";
 import { Cell, CellValue } from "domain/types";
-import { PuzzleSend } from "machines/puzzle-machine.types";
+import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 
 const Digit: FC<{ cell: Cell }> = ({ cell }) => (
   <p

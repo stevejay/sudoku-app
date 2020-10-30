@@ -1,7 +1,10 @@
 import React, { forwardRef } from "react";
 import { RenderModalDialogProps } from "react-overlays/Modal";
 import { DialogChrome } from "./dialog-chrome";
-import { PuzzleContext, PuzzleError } from "machines/puzzle-machine.types";
+import {
+  PuzzleContext,
+  PuzzleError,
+} from "machines/sudoku-puzzle-machine.types";
 import { Button } from "./button";
 
 type Props = RenderModalDialogProps & {

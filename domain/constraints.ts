@@ -124,6 +124,18 @@ export function getInvalidCells(
     .value();
 }
 
+export function getConstraintCellsForCell(
+  constraints: ConstraintCollection,
+  cells: CellCollection,
+  cell: Cell
+): CellCollection {
+  return chain(constraints)
+    .map((constraint) => constraint.getConstraintCells(cells, cell))
+    .flatten()
+    .uniqBy((cell) => cell.index)
+    .value();
+}
+
 export const STANDARD_SUDOKU_CONSTRAINTS: ConstraintCollection = [
   new RowConstraint(0),
   new RowConstraint(1),

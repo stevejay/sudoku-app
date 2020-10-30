@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from "react";
 import Modal from "react-overlays/Modal";
 import { ModalBackdrop } from "./modal-backdrop";
 import { Fade } from "./transitions";
-import { PuzzleContext } from "machines/puzzle-machine.types";
+import { PuzzleContext } from "machines/sudoku-puzzle-machine.types";
 import { ErrorDialog } from "./error-dialog";
 
 type Props = {

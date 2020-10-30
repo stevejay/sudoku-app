@@ -4,12 +4,12 @@ import { Grid } from "components/grid";
 import { Head } from "components/head";
 import { Nav } from "components/nav";
 import {
-  createPuzzleMachine,
+  createSudokuPuzzleMachine,
   getCanUndo,
   getCanRedo,
   getHasCheckpoint,
-} from "machines/puzzle-machine";
-import { PuzzleEvent } from "machines/puzzle-machine.types";
+} from "machines/sudoku-puzzle-machine";
+import { PuzzleEvent } from "machines/sudoku-puzzle-machine.types";
 import { EnteringPuzzleToolbar } from "components/entering-puzzle-toolbar";
 import {
   bindKeyboardShortcuts,
@@ -34,7 +34,7 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcuts<PuzzleEvent> = [
 ];
 
 const IndexPage = () => {
-  const [state, send] = useMachine(() => createPuzzleMachine());
+  const [state, send] = useMachine(() => createSudokuPuzzleMachine());
   const canUndo = getCanUndo(state.context);
   const canRedo = getCanRedo(state.context);
   const hasCheckpoint = getHasCheckpoint(state.context);

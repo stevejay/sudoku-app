@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { PuzzleSend } from "machines/puzzle-machine.types";
+import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 
 type Props = {
   send: PuzzleSend;

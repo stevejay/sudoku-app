@@ -32,9 +32,8 @@ export const Head: FC<Props> = ({ title, description }) => (
     />
     <link rel="mask-icon" href="/static/favicon-mask.svg" color="#000000" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap"
-      rel="preload"
-      as="style"
+      href="https://fonts.googleapis.com/css2?family=Architects+Daughter&amp;display=swap&amp;text=123456789"
+      rel="stylesheet"
     ></link>
   </NextHead>
 );
