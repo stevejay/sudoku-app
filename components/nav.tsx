@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import Modal from "react-overlays/Modal";
-import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
+import { FaGithub, FaQuestionCircle } from "react-icons/fa";
+// import { faGithub } from "@fortawesome/free-brands-svg-icons";
+// import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "./button";
 import { LinkButton } from "./link-button";
 import { InstructionDialog } from "./instruction-dialog";
@@ -23,7 +24,7 @@ export const Nav = () => {
             <li>
               <Button
                 label="Instructions"
-                icon={faQuestionCircle}
+                icon={FaQuestionCircle}
                 onClick={openModal}
               />
               <Modal
@@ -40,7 +41,7 @@ export const Nav = () => {
             <li>
               <LinkButton
                 label="GitHub"
-                icon={faGithub}
+                icon={FaGithub}
                 href="https://github.com/stevejay/sudoku-app"
               />
             </li>

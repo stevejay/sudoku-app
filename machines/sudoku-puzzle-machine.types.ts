@@ -55,8 +55,13 @@ export type RequestSetPuzzleFromPuzzleStringEvent = {
 export type RequestClearAllHighlightsEvent = {
   type: "REQUEST_CLEAR_ALL_HIGHLIGHTS";
 };
-export type RequestHighlightAllCellsWithDigitEvent = {
-  type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT";
+// TODO remove:
+// export type RequestHighlightAllCellsWithDigitEvent = {
+//   type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT";
+//   payload: { digit: CellDigit };
+// };
+export type RequestUpdateHighlightedDigitEvent = {
+  type: "REQUEST_UPDATE_HIGHLIGHTED_DIGIT";
   payload: { digit: CellDigit };
 };
 
@@ -73,6 +78,7 @@ export type PuzzleEvent =
   | RequestSaveCheckpointEvent
   | RequestRestoreCheckpointEvent
   | RequestClearAllHighlightsEvent
-  | RequestHighlightAllCellsWithDigitEvent;
+  //   | RequestHighlightAllCellsWithDigitEvent
+  | RequestUpdateHighlightedDigitEvent;
 
 export type PuzzleSend = (event: PuzzleEvent, payload?: EventData) => unknown;

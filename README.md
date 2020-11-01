@@ -17,4 +17,4 @@ XState testing:
 
 - How much is rendering on each input action??
 - aria labels on cells and toolbars
--
+- can xstate be replaced by the mini version?

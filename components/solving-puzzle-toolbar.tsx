@@ -1,12 +1,13 @@
 import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 import React, { FC } from "react";
-import { faUndoAlt } from "@fortawesome/free-solid-svg-icons";
-import { faRedoAlt } from "@fortawesome/free-solid-svg-icons";
+import { FaUndoAlt, FaRedoAlt } from "react-icons/fa";
+// import { faUndoAlt } from "@fortawesome/free-solid-svg-icons";
+// import { faRedoAlt } from "@fortawesome/free-solid-svg-icons";
 import { ToolbarButton } from "./toolbar-button";
 import { ToolbarLabel } from "./toolbar-label";
 import { RovingTabIndexProvider } from "react-roving-tabindex";
 import { ToolbarButtonWithRovingTabIndex } from "./toolbar-button-with-roving-tab-index";
-import { CellDigit } from "domain/sudoku-puzzle.types";
+// import { CellDigit } from "domain/sudoku-puzzle.types";
 
 const INDICES: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -33,12 +34,13 @@ export const SolvingPuzzleToolbar: FC<Props> = ({
               key={index}
               label={(index + 1).toString()}
               rowIndex={Math.floor(index / 3)}
-              onClick={() =>
-                send({
-                  type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT",
-                  // TODO find a way around this cast:
-                  payload: { digit: (index + 1) as CellDigit },
-                })
+              onClick={
+                () => {}
+                // send({
+                //   type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT",
+                //   // TODO find a way around this cast:
+                //   payload: { digit: (index + 1) as CellDigit },
+                // })
               }
             />
           ))}
@@ -67,13 +69,13 @@ export const SolvingPuzzleToolbar: FC<Props> = ({
       <div className="flex justify-between space-x-2">
         <ToolbarButton
           label="Undo"
-          icon={faUndoAlt}
+          icon={FaUndoAlt}
           disabled={!canUndo}
           onClick={() => send({ type: "REQUEST_UNDO" })}
         />
         <ToolbarButton
           label="Redo"
-          icon={faRedoAlt}
+          icon={FaRedoAlt}
           disabled={!canRedo}
           onClick={() => send({ type: "REQUEST_REDO" })}
         />

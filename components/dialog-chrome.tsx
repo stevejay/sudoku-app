@@ -1,7 +1,8 @@
 import React, { ReactNode } from "react";
 import { RenderModalDialogProps } from "react-overlays/Modal";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { FaTimes } from "react-icons/fa";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
 type Props = RenderModalDialogProps & {
   children?: ReactNode;
@@ -22,7 +23,7 @@ export const DialogChrome = React.forwardRef<HTMLDivElement, Props>(
           onClick={onHide}
           autoFocus
         >
-          <FontAwesomeIcon icon={faTimes} size="1x" className="text-white" />
+          <FaTimes className="text-white" />
         </button>
       )}
       {children}

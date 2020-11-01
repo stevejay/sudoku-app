@@ -1,21 +1,23 @@
 import React, { FC } from "react";
-import {
-  FontAwesomeIcon,
-  FontAwesomeIconProps,
-} from "@fortawesome/react-fontawesome";
+// import {
+//   FontAwesomeIcon,
+//   FontAwesomeIconProps,
+// } from "@fortawesome/react-fontawesome";
+import type { IconType } from "react-icons";
 import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 
 type Props = {
   label: string;
+  icon?: IconType;
   disabled?: boolean;
   rowIndex: number;
   onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-} & Partial<Pick<FontAwesomeIconProps, "icon">>;
+};
 
 export const ToolbarButtonWithRovingTabIndex: FC<Props> = ({
   label,
   rowIndex,
-  icon,
+  icon: Icon,
   disabled,
   onClick,
 }) => {
@@ -44,7 +46,7 @@ export const ToolbarButtonWithRovingTabIndex: FC<Props> = ({
       }`}
     >
       <span className="inline-flex items-center space-x-2">
-        {!!icon && <FontAwesomeIcon icon={icon} size="1x" />}
+        {!!Icon && <Icon size="1rem" />}
         <span>{label}</span>
       </span>
     </button>

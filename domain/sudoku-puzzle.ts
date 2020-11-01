@@ -1,9 +1,12 @@
-import { chain } from "lodash";
 import every from "lodash/every";
+import flatten from "lodash/flatten";
 import range from "lodash/range";
 import slice from "lodash/slice";
 import some from "lodash/some";
+import sortBy from "lodash/sortBy";
+import sortedUniqBy from "lodash/sortedUniqBy";
 import without from "lodash/without";
+import uniqBy from "lodash/uniqBy";
 import { STANDARD_SUDOKU_CONSTRAINTS } from "./sudoku-constraints";
 import {
   parsePuzzleString,
@@ -48,6 +51,7 @@ export function createPuzzleFromPuzzleString(
   return { cells, constraints: STANDARD_SUDOKU_CONSTRAINTS };
 }
 
+// Clears pencil marks, guesses, and shadings.
 export function clearAllMarkingUp(puzzle: SudokuPuzzle): SudokuPuzzle {
   const newCells = puzzle.cells.map((cell) =>
     cell.isGivenDigit
@@ -83,7 +87,8 @@ export function addOrRemoveGuessDigit(
   cellIndex: number,
   digit: CellDigit,
   isPencilDigit: boolean,
-  clearConstrainedCellsOnEnteringGuess: boolean = true
+  highlightedDigit: CellDigit | null,
+  clearPencilMarksInConstraintCells: boolean = true
 ): SudokuPuzzle {
   const cell = puzzle.cells[cellIndex];
   const newCells = slice(puzzle.cells);
@@ -94,15 +99,22 @@ export function addOrRemoveGuessDigit(
     }
     newCells[cellIndex] = {
       ...cell,
+      shading: digit === highlightedDigit ? 1 : cell.shading,
       pencilDigits: cell.pencilDigits.includes(digit)
         ? without(cell.pencilDigits, digit)
         : [...cell.pencilDigits, digit],
     };
   } else {
     const newDigit = cell.digit === digit ? null : digit;
-    newCells[cellIndex] = { ...cell, digit: newDigit, pencilDigits: [] };
+    newCells[cellIndex] = {
+      ...cell,
+      digit: newDigit,
+      shading:
+        newDigit !== null && newDigit === highlightedDigit ? 1 : cell.shading,
+      pencilDigits: [],
+    };
 
-    if (clearConstrainedCellsOnEnteringGuess) {
+    if (clearPencilMarksInConstraintCells) {
       const constrainedCells = getConstraintCellsForCell(puzzle, cellIndex);
       constrainedCells.forEach((cell) => {
         if (cell.pencilDigits.includes(digit)) {
@@ -184,11 +196,20 @@ export function createPuzzleUrl(
 }
 
 export function getInvalidCells(puzzle: SudokuPuzzle): CellCollection {
-  return chain(puzzle.constraints)
-    .map((constraint) => constraint.getInvalidCells(puzzle.cells))
-    .flatten()
-    .uniqBy((cell) => cell.index)
-    .value();
+  return uniqBy(
+    flatten(
+      puzzle.constraints.map((constraint) =>
+        constraint.getInvalidCells(puzzle.cells)
+      )
+    ),
+    (cell) => cell.index
+  );
+
+  //   return chain(puzzle.constraints)
+  //     .map((constraint) => constraint.getInvalidCells(puzzle.cells))
+  //     .flatten()
+  //     .uniqBy((cell) => cell.index)
+  //     .value();
 }
 
 export function getConstraintCellsForCell(
@@ -196,10 +217,22 @@ export function getConstraintCellsForCell(
   cellIndex: number
 ): CellCollection {
   const cell = puzzle.cells[cellIndex];
-  return chain(puzzle.constraints)
-    .map((constraint) => constraint.getConstraintCells(puzzle.cells, cell))
-    .flatten()
-    .sortBy((cell) => cell.index)
-    .sortedUniqBy((cell) => cell.index)
-    .value();
+  return sortedUniqBy(
+    sortBy(
+      flatten(
+        puzzle.constraints.map((constraint) =>
+          constraint.getConstraintCells(puzzle.cells, cell)
+        )
+      ),
+      (cell) => cell.index
+    ),
+    (cell) => cell.index
+  );
+
+  //   return chain(puzzle.constraints)
+  //     .map((constraint) => constraint.getConstraintCells(puzzle.cells, cell))
+  //     .flatten()
+  //     .sortBy((cell) => cell.index)
+  //     .sortedUniqBy((cell) => cell.index)
+  //     .value();
 }

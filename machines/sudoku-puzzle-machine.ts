@@ -10,8 +10,9 @@ import {
   PuzzleTypestate,
   DigitEnteredEvent,
   RequestClearCellEvent,
-  RequestHighlightAllCellsWithDigitEvent,
+  //   RequestHighlightAllCellsWithDigitEvent,
   RequestSetPuzzleFromPuzzleStringEvent,
+  RequestUpdateHighlightedDigitEvent,
 } from "./sudoku-puzzle-machine.types";
 
 export function getCanUndo(ctx: PuzzleContext): boolean {
@@ -109,8 +110,12 @@ export function createSudokuPuzzleMachine() {
               cond: "hasHighlighting",
               actions: ["createUndoState", "clearAllHighlights"],
             },
-            REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT: {
-              actions: ["createUndoState", "highlightAllCellsForDigit"],
+            // REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT: {
+            //   actions: ["createUndoState", "highlightAllCellsForDigit"],
+            // },
+            REQUEST_UPDATE_HIGHLIGHTED_DIGIT: {
+              // TODO might need guard that checks that highlighting will change?
+              actions: ["createUndoState", "updateHighlightedDigit"],
             },
           },
         },
@@ -163,6 +168,7 @@ export function createSudokuPuzzleMachine() {
         }),
         clearAllMarkingUp: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx) => puzzle.clearAllMarkingUp(ctx.puzzle),
+          highlightedDigit: null,
         }),
         resetCell: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx, event: RequestClearCellEvent) =>
@@ -186,6 +192,7 @@ export function createSudokuPuzzleMachine() {
               index,
               digit,
               isPencilDigit,
+              null, // TODO replace
               true
             );
           },
@@ -204,9 +211,18 @@ export function createSudokuPuzzleMachine() {
           puzzle: (ctx) => puzzle.highlightAllCellsWithErrors(ctx.puzzle),
           highlightedDigit: null,
         }),
-        highlightAllCellsForDigit: assign<PuzzleContext, PuzzleEvent>({
-          puzzle: (ctx, event: RequestHighlightAllCellsWithDigitEvent) =>
-            puzzle.highlightAllCellsForDigit(ctx.puzzle, event.payload.digit),
+        // highlightAllCellsForDigit: assign<PuzzleContext, PuzzleEvent>({
+        //   puzzle: (ctx, event: RequestHighlightAllCellsWithDigitEvent) =>
+        //     puzzle.highlightAllCellsForDigit(ctx.puzzle, event.payload.digit),
+        // }),
+        updateHighlightedDigit: assign<PuzzleContext, PuzzleEvent>({
+          highlightedDigit: (
+            ctx,
+            event: RequestUpdateHighlightedDigitEvent
+          ) => {
+            const { digit } = event.payload;
+            return digit === ctx.highlightedDigit ? null : digit;
+          },
         }),
       },
       guards: {

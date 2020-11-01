@@ -1,9 +1,10 @@
 import React, { useState, forwardRef } from "react";
 import { RenderModalDialogProps } from "react-overlays/Modal";
-import {
-  faClipboard,
-  faClipboardCheck,
-} from "@fortawesome/free-solid-svg-icons";
+import { FaClipboard, FaClipboardCheck } from "react-icons/fa";
+// import {
+//   faClipboard,
+//   faClipboardCheck,
+// } from "@fortawesome/free-solid-svg-icons";
 import { DialogChrome } from "./dialog-chrome";
 import { Button } from "./button";
 
@@ -27,7 +28,7 @@ export const GetPuzzleLinkDialog = forwardRef<HTMLDivElement, Props>(
           <h2 className="text-2xl font-bold text-purple-400">Puzzle Link</h2>
           <Button
             label={copied ? "Copied to clipboard" : "Copy to clipboard"}
-            icon={copied ? faClipboardCheck : faClipboard}
+            icon={copied ? FaClipboardCheck : FaClipboard}
             className={copied ? "bg-green-700" : ""}
             onClick={copyToClipboard}
           />

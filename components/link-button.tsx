@@ -1,15 +1,17 @@
 import React, { FC } from "react";
-import {
-  FontAwesomeIcon,
-  FontAwesomeIconProps,
-} from "@fortawesome/react-fontawesome";
+import type { IconType } from "react-icons";
+// import {
+//   FontAwesomeIcon,
+//   FontAwesomeIconProps,
+// } from "@fortawesome/react-fontawesome";
 
 type Props = {
   label: string;
+  icon?: IconType;
   href: string;
-} & Partial<Pick<FontAwesomeIconProps, "icon">>;
+};
 
-export const LinkButton: FC<Props> = ({ label, icon, href }) => (
+export const LinkButton: FC<Props> = ({ label, icon: Icon, href }) => (
   <a
     href={href}
     rel="noopener noreferrer"
@@ -17,7 +19,7 @@ export const LinkButton: FC<Props> = ({ label, icon, href }) => (
     className="inline-block bg-gray-700 border border-gray-600 hover:border-gray-400 text-white font-light uppercase py-1 px-3 rounded no-underline focus:outline-none focus:shadow-outline"
   >
     <span className="inline-flex items-center space-x-2">
-      {icon && <FontAwesomeIcon icon={icon} size="1x" />}
+      {Icon && <Icon size="1rem" />}
       <span>{label}</span>
     </span>
   </a>

@@ -1,7 +1,8 @@
 import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 import React, { FC } from "react";
-import { faUndoAlt } from "@fortawesome/free-solid-svg-icons";
-import { faRedoAlt } from "@fortawesome/free-solid-svg-icons";
+import { FaUndoAlt, FaRedoAlt } from "react-icons/fa";
+// import { faUndoAlt } from "@fortawesome/free-solid-svg-icons";
+// import { faRedoAlt } from "@fortawesome/free-solid-svg-icons";
 import { ToolbarButton } from "./toolbar-button";
 import { GetPuzzleLinkToolbarOption } from "./get-puzzle-link-toolbar-option";
 
@@ -24,13 +25,13 @@ export const EnteringPuzzleToolbar: FC<Props> = ({
         <div className="flex justify-between space-x-2">
           <ToolbarButton
             label="Undo"
-            icon={faUndoAlt}
+            icon={FaUndoAlt}
             disabled={!canUndo}
             onClick={() => send({ type: "REQUEST_UNDO" })}
           />
           <ToolbarButton
             label="Redo"
-            icon={faRedoAlt}
+            icon={FaRedoAlt}
             disabled={!canRedo}
             onClick={() => send({ type: "REQUEST_REDO" })}
           />
