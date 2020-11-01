@@ -11,7 +11,11 @@ import {
   getCanRedo,
   getHasCheckpoint,
 } from "machines/sudoku-puzzle-machine";
-import { PuzzleEvent } from "machines/sudoku-puzzle-machine.types";
+import {
+  PuzzleContext,
+  PuzzleEvent,
+  PuzzleTypestate,
+} from "machines/sudoku-puzzle-machine.types";
 import { EnteringPuzzleToolbar } from "components/entering-puzzle-toolbar";
 import {
   bindKeyboardShortcuts,
@@ -32,7 +36,9 @@ export const KEYBOARD_SHORTCUTS: KeyboardShortcutCollection<PuzzleEvent> = [
 ];
 
 const IndexPage = () => {
-  const [state, send] = useMachine(() => createSudokuPuzzleMachine());
+  const [state, send] = useMachine<PuzzleContext, PuzzleEvent, PuzzleTypestate>(
+    () => createSudokuPuzzleMachine()
+  );
   const canUndo = getCanUndo(state.context);
   const canRedo = getCanRedo(state.context);
   const hasCheckpoint = getHasCheckpoint(state.context);

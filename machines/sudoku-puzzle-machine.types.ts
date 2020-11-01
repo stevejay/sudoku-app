@@ -1,5 +1,6 @@
 import { EventData } from "xstate";
 import { CellDigit, SudokuPuzzle } from "domain/sudoku-puzzle.types";
+import { PuzzleString } from "domain/sudoku-puzzle-string";
 
 export enum PuzzleError {
   INVALID_PUZZLE = "INVALID_PUZZLE",
@@ -11,6 +12,7 @@ export type PuzzleContext = {
   undoStack: readonly SudokuPuzzle[];
   redoStack: readonly SudokuPuzzle[];
   checkpointPuzzle: SudokuPuzzle | null;
+  highlightedDigit: CellDigit | null;
   errorState: { error: PuzzleError | null } | null;
 };
 
@@ -48,7 +50,7 @@ export type RequestRestoreCheckpointEvent = {
 };
 export type RequestSetPuzzleFromPuzzleStringEvent = {
   type: "REQUEST_SET_PUZZLE_FROM_PUZZLE_STRING";
-  payload: { puzzleString: string };
+  payload: { puzzleString: PuzzleString };
 };
 export type RequestClearAllHighlightsEvent = {
   type: "REQUEST_CLEAR_ALL_HIGHLIGHTS";

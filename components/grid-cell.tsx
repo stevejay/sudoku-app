@@ -4,6 +4,8 @@ import { getBackgroundShadingClass } from "./get-background-shading-class";
 import { Cell, CellDigit } from "domain/sudoku-puzzle.types";
 import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 
+// on the td: box-shadow: 0px 0px 2px 2px yellow inset;
+
 const Digit: FC<{ cell: Cell }> = ({ cell }) => (
   <p
     className={`row-span-3 col-span-3 self-center text-3xl text-center ${

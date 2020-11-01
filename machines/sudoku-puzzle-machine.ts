@@ -135,6 +135,7 @@ export function createSudokuPuzzleMachine() {
           undoStack: [],
           redoStack: [],
           checkpointPuzzle: null,
+          highlightedDigit: null,
           errorState: null,
         }),
         resetPuzzle: assign<PuzzleContext, PuzzleEvent>({
@@ -197,9 +198,11 @@ export function createSudokuPuzzleMachine() {
         }),
         clearAllHighlights: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx) => puzzle.clearAllHighlights(ctx.puzzle),
+          highlightedDigit: null,
         }),
         highlightAllCellsWithErrors: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx) => puzzle.highlightAllCellsWithErrors(ctx.puzzle),
+          highlightedDigit: null,
         }),
         highlightAllCellsForDigit: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx, event: RequestHighlightAllCellsWithDigitEvent) =>
@@ -228,6 +231,7 @@ export function createSudokuPuzzleMachine() {
     undoStack: [],
     redoStack: [],
     checkpointPuzzle: null,
+    highlightedDigit: null,
     errorState: null,
   });
 }

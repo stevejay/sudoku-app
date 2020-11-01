@@ -13,7 +13,7 @@ export type Cell = Readonly<{
 export type CellCollection = readonly Cell[];
 
 export interface IConstraint {
-  // Includes given digits.
+  // Note: getInvalidCells returns given digit cells as well.
   getInvalidCells(cells: CellCollection): CellCollection;
   getConstraintCells(cells: CellCollection, cell: Cell): CellCollection;
 }
