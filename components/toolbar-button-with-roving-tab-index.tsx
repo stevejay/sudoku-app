@@ -1,8 +1,4 @@
-import React, { FC } from "react";
-// import {
-//   FontAwesomeIcon,
-//   FontAwesomeIconProps,
-// } from "@fortawesome/react-fontawesome";
+import React, { FC, useRef } from "react";
 import type { IconType } from "react-icons";
 import { useFocusEffect, useRovingTabIndex } from "react-roving-tabindex";
 
@@ -21,7 +17,7 @@ export const ToolbarButtonWithRovingTabIndex: FC<Props> = ({
   disabled,
   onClick,
 }) => {
-  const ref = React.useRef<HTMLButtonElement>(null);
+  const ref = useRef<HTMLButtonElement>(null);
 
   const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
     ref,

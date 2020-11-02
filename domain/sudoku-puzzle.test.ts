@@ -1,6 +1,7 @@
 import _ from "lodash";
 import {
   createBlankCell,
+  createCompleteTestSudokuPuzzle,
   createGivenDigitCell,
   createGuessDigitCell,
   createTestSudokuPuzzle,
@@ -11,23 +12,24 @@ import {
 } from "testing/domain-testing-utils";
 import { STANDARD_SUDOKU_CONSTRAINTS } from "./sudoku-constraints";
 import {
-  addGivenDigitToCell,
   addOrRemoveGuessDigit,
   puzzleCellIsGivenDigit,
-  clearAllHighlights,
   clearAllMarkingUp,
   createPuzzle,
   createPuzzleFromPuzzleString,
   getInvalidCells,
-  highlightAllCellsWithErrors,
   isValidPuzzle,
   resetCell,
   isSolved,
-  hasHighlighting,
   createPuzzleUrl,
   getConstraintCellsForCell,
-  highlightAllCellsForDigit,
+  puzzleHasMarkingUp,
+  puzzleIsNotAlreadyReset,
+  cellIsNotAlreadyReset,
+  addOrRemoveGivenDigit,
+  isComplete,
 } from "./sudoku-puzzle";
+import type { Cell, CellCollection, SudokuPuzzle } from "./sudoku-puzzle.types";
 
 describe("createPuzzle", () => {
   it("should create a valid puzzle", () => {
@@ -38,7 +40,6 @@ describe("createPuzzle", () => {
       expect(cell.index).toEqual(index);
       expect(cell.digit).toBeNull();
       expect(cell.isGivenDigit).toEqual(false);
-      expect(cell.shading).toBeNull();
       expect(cell.pencilDigits).toHaveLength(0);
     });
   });
@@ -57,19 +58,88 @@ describe("createPuzzleFromPuzzleString", () => {
     expect(result.cells.length).toEqual(81);
     result.cells.forEach((cell, index) => {
       expect(cell.index).toEqual(index);
-      expect(cell.shading).toBeNull();
       expect(cell.pencilDigits).toHaveLength(0);
     });
-    expect(result.cells[0]).toMatchObject({ digit: 1, isGivenDigit: true });
-    expect(result.cells[1]).toMatchObject({ digit: 2, isGivenDigit: true });
-    expect(result.cells[2]).toMatchObject({ digit: 3, isGivenDigit: true });
-    expect(result.cells[3]).toMatchObject({ digit: 4, isGivenDigit: true });
-    expect(result.cells[4]).toMatchObject({ digit: 5, isGivenDigit: true });
-    expect(result.cells[5]).toMatchObject({ digit: 6, isGivenDigit: true });
-    expect(result.cells[6]).toMatchObject({ digit: 7, isGivenDigit: true });
-    expect(result.cells[7]).toMatchObject({ digit: 8, isGivenDigit: true });
-    expect(result.cells[8]).toMatchObject({ digit: 9, isGivenDigit: true });
-    expect(result.cells[9]).toMatchObject({ digit: null, isGivenDigit: false });
+    expect(result.cells[0]).toMatchObject<Partial<Cell>>({
+      digit: 1,
+      isGivenDigit: true,
+    });
+    expect(result.cells[1]).toMatchObject<Partial<Cell>>({
+      digit: 2,
+      isGivenDigit: true,
+    });
+    expect(result.cells[2]).toMatchObject<Partial<Cell>>({
+      digit: 3,
+      isGivenDigit: true,
+    });
+    expect(result.cells[3]).toMatchObject<Partial<Cell>>({
+      digit: 4,
+      isGivenDigit: true,
+    });
+    expect(result.cells[4]).toMatchObject<Partial<Cell>>({
+      digit: 5,
+      isGivenDigit: true,
+    });
+    expect(result.cells[5]).toMatchObject<Partial<Cell>>({
+      digit: 6,
+      isGivenDigit: true,
+    });
+    expect(result.cells[6]).toMatchObject<Partial<Cell>>({
+      digit: 7,
+      isGivenDigit: true,
+    });
+    expect(result.cells[7]).toMatchObject<Partial<Cell>>({
+      digit: 8,
+      isGivenDigit: true,
+    });
+    expect(result.cells[8]).toMatchObject<Partial<Cell>>({
+      digit: 9,
+      isGivenDigit: true,
+    });
+    expect(result.cells[9]).toMatchObject<Partial<Cell>>({
+      digit: null,
+      isGivenDigit: false,
+    });
+  });
+});
+
+describe("puzzleHasMarkingUp", () => {
+  describe("when there is no marking up", () => {
+    it("should return false", () => {
+      const puzzle = createTestSudokuPuzzle();
+      const result = puzzleHasMarkingUp(puzzle);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe("when there is a given digit", () => {
+    it("should return false", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(10), digit: 1, isGivenDigit: true },
+      ]);
+      const result = puzzleHasMarkingUp(puzzle);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe("when there is a guess digit", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(10), digit: 2 },
+      ]);
+      const result = puzzleHasMarkingUp(puzzle);
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe("when there are pencil digits", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(10), pencilDigits: [1, 2, 3] },
+      ]);
+      const result = puzzleHasMarkingUp(puzzle);
+      expect(result).toEqual(true);
+    });
   });
 });
 
@@ -79,16 +149,14 @@ describe("clearAllMarkingUp", () => {
       { ...createBlankCell(0), digit: 1, isGivenDigit: true },
       { ...createBlankCell(1), digit: 2 },
       { ...createBlankCell(2), pencilDigits: [1, 2, 3] },
-      { ...createBlankCell(3), shading: 0 },
     ]);
     const result = clearAllMarkingUp(puzzle);
     expect(result.constraints).toBe(puzzle.constraints);
-    expect(result.cells).toEqual([
+    expect(result.cells).toEqual<CellCollection>([
       puzzle.cells[0],
       createBlankCell(1),
       createBlankCell(2),
-      createBlankCell(3),
-      ...puzzle.cells.slice(4),
+      ...puzzle.cells.slice(3),
     ]);
   });
 });
@@ -96,12 +164,11 @@ describe("clearAllMarkingUp", () => {
 describe("resetCell", () => {
   const CELL_INDEX = 10;
 
-  const EXPECTED_CELL = Object.freeze({
+  const EXPECTED_CELL = Object.freeze<Cell>({
     index: CELL_INDEX,
     isGivenDigit: false,
     digit: null,
     pencilDigits: [],
-    shading: null,
   });
 
   it("should reset a given digit cell", () => {
@@ -111,7 +178,7 @@ describe("resetCell", () => {
     const result = resetCell(puzzle, CELL_INDEX);
     expect(result.constraints).toBe(puzzle.constraints);
     expect(result.cells.length).toEqual(81);
-    expect(result.cells[CELL_INDEX]).toEqual(EXPECTED_CELL);
+    expect(result.cells[CELL_INDEX]).toEqual<Cell>(EXPECTED_CELL);
   });
 
   it("should reset a guess digit cell", () => {
@@ -121,7 +188,7 @@ describe("resetCell", () => {
     const result = resetCell(puzzle, CELL_INDEX);
     expect(result.constraints).toBe(puzzle.constraints);
     expect(result.cells.length).toEqual(81);
-    expect(result.cells[CELL_INDEX]).toEqual(EXPECTED_CELL);
+    expect(result.cells[CELL_INDEX]).toEqual<Cell>(EXPECTED_CELL);
   });
 
   it("should reset a pencil digits cell", () => {
@@ -131,34 +198,141 @@ describe("resetCell", () => {
     const result = resetCell(puzzle, CELL_INDEX);
     expect(result.constraints).toBe(puzzle.constraints);
     expect(result.cells.length).toEqual(81);
-    expect(result.cells[CELL_INDEX]).toEqual(EXPECTED_CELL);
-  });
-
-  it("should reset a cell with shading", () => {
-    const puzzle = createTestSudokuPuzzle([
-      { ...createBlankCell(CELL_INDEX), shading: 1 },
-    ]);
-    const result = resetCell(puzzle, CELL_INDEX);
-    expect(result.constraints).toBe(puzzle.constraints);
-    expect(result.cells.length).toEqual(81);
-    expect(result.cells[CELL_INDEX]).toEqual(EXPECTED_CELL);
+    expect(result.cells[CELL_INDEX]).toEqual<Cell>(EXPECTED_CELL);
   });
 });
 
-describe("addGivenDigitToCell", () => {
+describe("puzzleIsNotAlreadyReset", () => {
+  describe("when the puzzle is already reset", () => {
+    it("should return false", () => {
+      const puzzle = createTestSudokuPuzzle();
+      const result = puzzleIsNotAlreadyReset(puzzle);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe("when a cell has a given digit", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(10), digit: 1, isGivenDigit: true },
+      ]);
+      const result = puzzleIsNotAlreadyReset(puzzle);
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe("when a cell has a guess digit", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(10), digit: 2 },
+      ]);
+      const result = puzzleIsNotAlreadyReset(puzzle);
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe("when a cell has pencil digits", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(10), pencilDigits: [1, 2, 3] },
+      ]);
+      const result = puzzleIsNotAlreadyReset(puzzle);
+      expect(result).toEqual(true);
+    });
+  });
+});
+
+describe("cellIsNotAlreadyReset", () => {
   const CELL_INDEX = 10;
 
-  it("should add the given digit to the cell", () => {
-    const puzzle = createTestSudokuPuzzle();
-    const result = addGivenDigitToCell(puzzle, CELL_INDEX, 5);
-    expect(result.constraints).toBe(puzzle.constraints);
-    expect(result.cells.length).toEqual(81);
-    expect(result.cells[CELL_INDEX]).toEqual({
-      index: CELL_INDEX,
-      isGivenDigit: true,
-      digit: 5,
-      pencilDigits: [],
-      shading: null,
+  describe("when the cell is already reset", () => {
+    it("should return false", () => {
+      const puzzle = createTestSudokuPuzzle();
+      const result = cellIsNotAlreadyReset(puzzle, CELL_INDEX);
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe("when a cell has a given digit", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(CELL_INDEX), digit: 1, isGivenDigit: true },
+      ]);
+      const result = cellIsNotAlreadyReset(puzzle, CELL_INDEX);
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe("when a cell has a guess digit", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(CELL_INDEX), digit: 2 },
+      ]);
+      const result = cellIsNotAlreadyReset(puzzle, CELL_INDEX);
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe("when a cell has pencil digits", () => {
+    it("should return true", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(CELL_INDEX), pencilDigits: [1, 2, 3] },
+      ]);
+      const result = cellIsNotAlreadyReset(puzzle, CELL_INDEX);
+      expect(result).toEqual(true);
+    });
+  });
+});
+
+describe("addOrRemoveGivenDigit", () => {
+  const CELL_INDEX = 10;
+
+  describe("when the cell is not already for the given digit", () => {
+    it("should set the cell to the given digit", () => {
+      const puzzle = createTestSudokuPuzzle();
+      const result = addOrRemoveGivenDigit(puzzle, CELL_INDEX, 5);
+      expect(result.constraints).toBe(puzzle.constraints);
+      expect(result.cells.length).toEqual(81);
+      expect(result.cells[CELL_INDEX]).toEqual<Cell>({
+        index: CELL_INDEX,
+        isGivenDigit: true,
+        digit: 5,
+        pencilDigits: [],
+      });
+    });
+  });
+
+  describe("when the cell is for a different given digit", () => {
+    it("should set the cell to the given digit", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(CELL_INDEX), digit: 1, isGivenDigit: true },
+      ]);
+      const result = addOrRemoveGivenDigit(puzzle, CELL_INDEX, 5);
+      expect(result.constraints).toBe(puzzle.constraints);
+      expect(result.cells.length).toEqual(81);
+      expect(result.cells[CELL_INDEX]).toEqual<Cell>({
+        index: CELL_INDEX,
+        isGivenDigit: true,
+        digit: 5,
+        pencilDigits: [],
+      });
+    });
+  });
+
+  describe("when the cell is already for the given digit", () => {
+    it("should remove the given digit from the cell", () => {
+      const puzzle = createTestSudokuPuzzle([
+        { ...createBlankCell(CELL_INDEX), digit: 5, isGivenDigit: true },
+      ]);
+      const result = addOrRemoveGivenDigit(puzzle, CELL_INDEX, 5);
+      expect(result.constraints).toBe(puzzle.constraints);
+      expect(result.cells.length).toEqual(81);
+      expect(result.cells[CELL_INDEX]).toEqual<Cell>({
+        index: CELL_INDEX,
+        isGivenDigit: false,
+        digit: null,
+        pencilDigits: [],
+      });
     });
   });
 });
@@ -175,12 +349,11 @@ describe("addOrRemoveGuessDigit", () => {
         const result = addOrRemoveGuessDigit(puzzle, CELL_INDEX, 2, true);
         expect(result.constraints).toBe(puzzle.constraints);
         expect(result.cells.length).toEqual(81);
-        expect(result.cells[CELL_INDEX]).toEqual({
+        expect(result.cells[CELL_INDEX]).toEqual<Cell>({
           index: CELL_INDEX,
           isGivenDigit: false,
           digit: null,
           pencilDigits: [3, 1],
-          shading: null,
         });
       });
     });
@@ -193,12 +366,11 @@ describe("addOrRemoveGuessDigit", () => {
         const result = addOrRemoveGuessDigit(puzzle, CELL_INDEX, 2, true);
         expect(result.constraints).toBe(puzzle.constraints);
         expect(result.cells.length).toEqual(81);
-        expect(result.cells[CELL_INDEX]).toEqual({
+        expect(result.cells[CELL_INDEX]).toEqual<Cell>({
           index: CELL_INDEX,
           isGivenDigit: false,
           digit: null,
           pencilDigits: [1, 3, 2],
-          shading: null,
         });
       });
     });
@@ -209,7 +381,7 @@ describe("addOrRemoveGuessDigit", () => {
           { ...createBlankCell(CELL_INDEX), digit: 3 },
         ]);
         const result = addOrRemoveGuessDigit(puzzle, CELL_INDEX, 2, true);
-        expect(result).toEqual(puzzle);
+        expect(result).toEqual<SudokuPuzzle>(puzzle);
       });
     });
   });
@@ -223,12 +395,11 @@ describe("addOrRemoveGuessDigit", () => {
         const result = addOrRemoveGuessDigit(puzzle, CELL_INDEX, 2, false);
         expect(result.constraints).toBe(puzzle.constraints);
         expect(result.cells.length).toEqual(81);
-        expect(result.cells[CELL_INDEX]).toEqual({
+        expect(result.cells[CELL_INDEX]).toEqual<Cell>({
           index: CELL_INDEX,
           isGivenDigit: false,
           digit: null,
           pencilDigits: [],
-          shading: null,
         });
       });
     });
@@ -239,71 +410,14 @@ describe("addOrRemoveGuessDigit", () => {
         const result = addOrRemoveGuessDigit(puzzle, CELL_INDEX, 2, false);
         expect(result.constraints).toBe(puzzle.constraints);
         expect(result.cells.length).toEqual(81);
-        expect(result.cells[CELL_INDEX]).toEqual({
+        expect(result.cells[CELL_INDEX]).toEqual<Cell>({
           index: CELL_INDEX,
           isGivenDigit: false,
           digit: 2,
           pencilDigits: [],
-          shading: null,
         });
       });
     });
-  });
-});
-
-describe("clearAllHighlights", () => {
-  it("should clear all highlights", () => {
-    const puzzle = createTestSudokuPuzzle([
-      { ...createBlankCell(1), shading: 1 },
-      { ...createBlankCell(2), shading: 0 },
-    ]);
-    const result = clearAllHighlights(puzzle);
-    expect(result.constraints).toBe(puzzle.constraints);
-    expect(result.cells).toEqual([
-      puzzle.cells[0],
-      { ...createBlankCell(1), shading: null },
-      { ...createBlankCell(2), shading: null },
-      ...puzzle.cells.slice(3),
-    ]);
-  });
-});
-
-describe("highlightAllCellsWithErrors", () => {
-  it("should highlight all error cells", () => {
-    const puzzle = createTestSudokuPuzzle([
-      createGivenDigitCell(0, 1), // [0,0]
-      createGivenDigitCell(10, 2), // [1,1]
-      createGivenDigitCell(30, 3), // [3,3]
-      createGuessDigitCell(40, 3), // [4,4] same box as third
-      createGuessDigitCell(8, 1), // [8,0] same row as first
-      createGuessDigitCell(73, 2), // [1,8] Same column as second
-    ]);
-    const result = highlightAllCellsWithErrors(puzzle);
-    expect(result.constraints).toBe(puzzle.constraints);
-    expect(result.cells.length).toEqual(81);
-    expect(result.cells[0].shading).toBeNull();
-    expect(result.cells[10].shading).toBeNull();
-    expect(result.cells[30].shading).toBeNull();
-    expect(result.cells[8].shading).toEqual(0);
-    expect(result.cells[40].shading).toEqual(0);
-    expect(result.cells[73].shading).toEqual(0);
-  });
-});
-
-describe("highlightAllCellsForDigit", () => {
-  it("should highlight all cells for the given digit", () => {
-    const DIGIT = 2;
-    const puzzle = createTestSudokuPuzzle([
-      createGivenDigitCell(0, 1), // [0,0]
-      createGivenDigitCell(10, DIGIT), // [1,1]
-      createGuessDigitCell(30, DIGIT), // [3,3]
-    ]);
-    const result = highlightAllCellsForDigit(puzzle, DIGIT);
-    expect(result.constraints).toBe(puzzle.constraints);
-    expect(result.cells.length).toEqual(81);
-    expect(result.cells[0].shading).toBeNull();
-    expect(result.cells[10].shading).toEqual(1);
-    expect(result.cells[30].shading).toEqual(1);
   });
 });
 
@@ -382,26 +496,6 @@ describe("isSolved", () => {
         VALID_FILLED_IN_PUZZLE_STRING
       );
       const result = isSolved(puzzle);
-      expect(result).toEqual(true);
-    });
-  });
-});
-
-describe("hasHighlighting", () => {
-  describe("when the puzzle is empty", () => {
-    it("should return false", () => {
-      const puzzle = createTestSudokuPuzzle();
-      const result = hasHighlighting(puzzle);
-      expect(result).toEqual(false);
-    });
-  });
-
-  describe("when the puzzle has highlighting", () => {
-    it("should return true", () => {
-      const puzzle = createTestSudokuPuzzle([
-        { ...createGuessDigitCell(10, 3), shading: 0 },
-      ]);
-      const result = hasHighlighting(puzzle);
       expect(result).toEqual(true);
     });
   });
@@ -508,6 +602,24 @@ describe("getInvalidCells", () => {
       expect(result).toContain(puzzle.cells[0]);
       expect(result).toContain(puzzle.cells[1]);
       expect(result).toContain(puzzle.cells[2]);
+    });
+  });
+});
+
+describe("isComplete", () => {
+  describe("when the puzzle is complete", () => {
+    it("should return true", () => {
+      const puzzle = createCompleteTestSudokuPuzzle();
+      const result = isComplete(puzzle);
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe("when the puzzle is not complete", () => {
+    it("should return false", () => {
+      const puzzle = createTestSudokuPuzzle();
+      const result = isComplete(puzzle);
+      expect(result).toEqual(false);
     });
   });
 });

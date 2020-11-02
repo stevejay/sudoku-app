@@ -4,7 +4,7 @@ import groupBy from "lodash/groupBy";
 import slice from "lodash/slice";
 import range from "lodash/range";
 import remove from "lodash/remove";
-import {
+import type {
   Cell,
   CellCollection,
   ConstraintCollection,
@@ -23,6 +23,10 @@ function getInvalidCellsForCellGroup(cells: CellCollection): CellCollection {
     )
   );
 }
+
+// export class UniqueInRowsConstraint
+
+// export class UniqueInColumnsConstraint
 
 export class BoxConstraint implements IConstraint {
   readonly boxIndex: number;

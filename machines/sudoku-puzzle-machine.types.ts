@@ -1,6 +1,7 @@
-import { EventData } from "xstate";
-import { CellDigit, SudokuPuzzle } from "domain/sudoku-puzzle.types";
-import { PuzzleString } from "domain/sudoku-puzzle-string";
+import type { EventData } from "xstate";
+import type { CellDigit, SudokuPuzzle } from "domain/sudoku-puzzle.types";
+import type { PuzzleString } from "domain/sudoku-puzzle-string.types";
+import type { CellHighlighting } from "domain/cell-highlighting.types";
 
 export enum PuzzleError {
   INVALID_PUZZLE = "INVALID_PUZZLE",
@@ -12,13 +13,13 @@ export type PuzzleContext = {
   undoStack: readonly SudokuPuzzle[];
   redoStack: readonly SudokuPuzzle[];
   checkpointPuzzle: SudokuPuzzle | null;
-  highlightedDigit: CellDigit | null;
+  cellHighlighting: CellHighlighting;
   errorState: { error: PuzzleError | null } | null;
 };
 
 export type PuzzleTypestate =
   | { value: "initialising"; context: PuzzleContext }
-  | { value: "enteringPuzzle"; context: PuzzleContext }
+  | { value: "creatingPuzzle"; context: PuzzleContext }
   | { value: "solvingPuzzle"; context: PuzzleContext }
   | { value: "solvedPuzzle"; context: PuzzleContext };
 
@@ -55,11 +56,6 @@ export type RequestSetPuzzleFromPuzzleStringEvent = {
 export type RequestClearAllHighlightsEvent = {
   type: "REQUEST_CLEAR_ALL_HIGHLIGHTS";
 };
-// TODO remove:
-// export type RequestHighlightAllCellsWithDigitEvent = {
-//   type: "REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT";
-//   payload: { digit: CellDigit };
-// };
 export type RequestUpdateHighlightedDigitEvent = {
   type: "REQUEST_UPDATE_HIGHLIGHTED_DIGIT";
   payload: { digit: CellDigit };
@@ -78,7 +74,6 @@ export type PuzzleEvent =
   | RequestSaveCheckpointEvent
   | RequestRestoreCheckpointEvent
   | RequestClearAllHighlightsEvent
-  //   | RequestHighlightAllCellsWithDigitEvent
   | RequestUpdateHighlightedDigitEvent;
 
 export type PuzzleSend = (event: PuzzleEvent, payload?: EventData) => unknown;

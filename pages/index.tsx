@@ -10,8 +10,13 @@ import {
   getCanUndo,
   getCanRedo,
   getHasCheckpoint,
+  getPuzzle,
+  getHighlighting,
+  getPuzzleIsComplete,
+  getIsValidPuzzle,
+  getErrorState,
 } from "machines/sudoku-puzzle-machine";
-import {
+import type {
   PuzzleContext,
   PuzzleEvent,
   PuzzleTypestate,
@@ -23,6 +28,7 @@ import {
 } from "components/keyboard-shortcuts";
 import { ErrorModal } from "components/error-modal";
 import { SolvingPuzzleToolbar } from "components/solving-puzzle-toolbar";
+import { SolvedPuzzleToolbar } from "components/solved-puzzle-toolbar";
 
 export const KEYBOARD_SHORTCUTS: KeyboardShortcutCollection<PuzzleEvent> = [
   {
@@ -39,11 +45,15 @@ const IndexPage = () => {
   const [state, send] = useMachine<PuzzleContext, PuzzleEvent, PuzzleTypestate>(
     () => createSudokuPuzzleMachine()
   );
+
+  const puzzle = getPuzzle(state.context);
+  const highlighting = getHighlighting(state.context);
   const canUndo = getCanUndo(state.context);
   const canRedo = getCanRedo(state.context);
-  const hasCheckpoint = getHasCheckpoint(state.context);
+  const errorState = getErrorState(state.context);
 
   useEffect(() => bindKeyboardShortcuts(KEYBOARD_SHORTCUTS, send), [send]);
+
   useEffect(() => {
     const puzzleString = getPuzzleStringFromLocation(window.location);
     if (puzzleString) {
@@ -62,33 +72,29 @@ const IndexPage = () => {
       />
       <Nav />
       <main className="w-full flex flex-grow flex-col sm:flex-row items-center sm:items-start sm:justify-center py-6 sm:py-10 space-y-8 sm:space-y-0 sm:space-x-10">
-        {state.value === "enteringPuzzle" && (
-          <>
-            <Grid puzzle={state.context.puzzle} creating send={send} />
-            <EnteringPuzzleToolbar
-              send={send}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              puzzleUrlGenerator={() =>
-                createPuzzleUrl(state.context.puzzle, window.location)
-              }
-            />
-          </>
+        <Grid puzzle={puzzle} highlighting={highlighting} send={send} />
+        {state.value === "creatingPuzzle" && (
+          <EnteringPuzzleToolbar
+            send={send}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            isValidPuzzle={getIsValidPuzzle(state.context)}
+            puzzleUrlGenerator={() => createPuzzleUrl(puzzle, window.location)}
+          />
         )}
         {state.value === "solvingPuzzle" && (
-          <>
-            <Grid puzzle={state.context.puzzle} creating={false} send={send} />
-            <SolvingPuzzleToolbar
-              send={send}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              hasCheckpoint={hasCheckpoint}
-            />
-          </>
+          <SolvingPuzzleToolbar
+            send={send}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            hasCheckpoint={getHasCheckpoint(state.context)}
+            puzzleIsComplete={getPuzzleIsComplete(state.context)}
+            highlighting={highlighting}
+          />
         )}
-        {/* {state.value === "solvedPuzzle" && <p>Well done!</p>} */}
+        {state.value === "solvedPuzzle" && <SolvedPuzzleToolbar send={send} />}
       </main>
-      <ErrorModal errorState={state.context.errorState} />
+      <ErrorModal errorState={errorState} />
     </div>
   );
 };

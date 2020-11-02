@@ -1,9 +1,5 @@
 import React, { FC } from "react";
 import type { IconType } from "react-icons";
-// import {
-//   FontAwesomeIcon,
-//   FontAwesomeIconProps,
-// } from "@fortawesome/react-fontawesome";
 
 type Props = {
   label: string;

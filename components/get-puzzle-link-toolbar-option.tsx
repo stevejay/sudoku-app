@@ -6,10 +6,12 @@ import { ToolbarButton } from "./toolbar-button";
 import { GetPuzzleLinkDialog } from "./get-puzzle-link-dialog";
 
 type Props = {
+  isValidPuzzle: boolean;
   puzzleUrlGenerator: () => string;
 };
 
 export const GetPuzzleLinkToolbarOption: FC<Props> = ({
+  isValidPuzzle,
   puzzleUrlGenerator,
 }) => {
   const [showModal, setShowModal] = useState(false);
@@ -17,8 +19,14 @@ export const GetPuzzleLinkToolbarOption: FC<Props> = ({
   const hideModal = () => setShowModal(false);
   return (
     <>
-      <ToolbarButton label="Get puzzle link" onClick={openModal} />
+      <ToolbarButton
+        label="Get puzzle link"
+        disabled={!isValidPuzzle}
+        onClick={openModal}
+      />
       <Modal
+        aria-labelledby="get-puzzle-link-title"
+        aria-describedby="get-puzzle-link-description"
         show={showModal}
         onHide={hideModal}
         transition={Fade}

@@ -2,7 +2,6 @@ import every from "lodash/every";
 import flatten from "lodash/flatten";
 import range from "lodash/range";
 import slice from "lodash/slice";
-import some from "lodash/some";
 import sortBy from "lodash/sortBy";
 import sortedUniqBy from "lodash/sortedUniqBy";
 import without from "lodash/without";
@@ -12,14 +11,14 @@ import {
   parsePuzzleString,
   createPuzzleStringFromCellCollection,
 } from "./sudoku-puzzle-string";
-import {
+import type {
   Cell,
   CellCollection,
   CellDigit,
   ConstraintCollection,
-  ShadingColor,
   SudokuPuzzle,
 } from "./sudoku-puzzle.types";
+import { some } from "lodash";
 
 function createEmptyCell(index: number): Cell {
   return {
@@ -27,9 +26,10 @@ function createEmptyCell(index: number): Cell {
     isGivenDigit: false,
     digit: null,
     pencilDigits: [],
-    shading: null,
   };
 }
+
+// TODO rows, columns
 
 export function createPuzzle(
   initialConstraints: ConstraintCollection
@@ -51,14 +51,36 @@ export function createPuzzleFromPuzzleString(
   return { cells, constraints: STANDARD_SUDOKU_CONSTRAINTS };
 }
 
-// Clears pencil marks, guesses, and shadings.
+export function puzzleHasMarkingUp(puzzle: SudokuPuzzle): boolean {
+  return !every(
+    puzzle.cells,
+    (cell) =>
+      cell.isGivenDigit ||
+      (cell.digit === null && cell.pencilDigits.length === 0)
+  );
+}
+
+// Clears pencil marks and guesses but not given digits.
 export function clearAllMarkingUp(puzzle: SudokuPuzzle): SudokuPuzzle {
-  const newCells = puzzle.cells.map((cell) =>
-    cell.isGivenDigit
-      ? cell
-      : { ...cell, digit: null, pencilDigits: [], shading: null }
+  const newCells = puzzle.cells.map(
+    (cell): Cell =>
+      cell.isGivenDigit ? cell : { ...cell, digit: null, pencilDigits: [] }
   );
   return { ...puzzle, cells: newCells };
+}
+
+export function puzzleIsNotAlreadyReset(puzzle: SudokuPuzzle): boolean {
+  return some(puzzle.cells, (cell) =>
+    cellIsNotAlreadyReset(puzzle, cell.index)
+  );
+}
+
+export function cellIsNotAlreadyReset(
+  puzzle: SudokuPuzzle,
+  cellIndex: number
+): boolean {
+  const cell = puzzle.cells[cellIndex];
+  return cell.digit !== null || cell.isGivenDigit || !!cell.pencilDigits.length;
 }
 
 export function resetCell(
@@ -71,14 +93,28 @@ export function resetCell(
   return { ...puzzle, cells: newCells };
 }
 
-export function addGivenDigitToCell(
+export function addOrRemoveGivenDigit(
   puzzle: SudokuPuzzle,
   cellIndex: number,
   digit: CellDigit
 ): SudokuPuzzle {
   const cell = puzzle.cells[cellIndex];
   const newCells = slice(puzzle.cells);
-  newCells[cellIndex] = { ...cell, isGivenDigit: true, digit };
+  if (cell.digit === digit && cell.isGivenDigit) {
+    newCells[cellIndex] = {
+      ...cell,
+      isGivenDigit: false,
+      digit: null,
+      pencilDigits: [],
+    };
+  } else {
+    newCells[cellIndex] = {
+      ...cell,
+      isGivenDigit: true,
+      digit,
+      pencilDigits: [],
+    };
+  }
   return { ...puzzle, cells: newCells };
 }
 
@@ -87,10 +123,12 @@ export function addOrRemoveGuessDigit(
   cellIndex: number,
   digit: CellDigit,
   isPencilDigit: boolean,
-  highlightedDigit: CellDigit | null,
   clearPencilMarksInConstraintCells: boolean = true
 ): SudokuPuzzle {
   const cell = puzzle.cells[cellIndex];
+  if (cell.isGivenDigit) {
+    throw new Error("addOrRemoveGuessDigit invoked on given digit");
+  }
   const newCells = slice(puzzle.cells);
   if (isPencilDigit) {
     if (cell.digit !== null) {
@@ -99,7 +137,6 @@ export function addOrRemoveGuessDigit(
     }
     newCells[cellIndex] = {
       ...cell,
-      shading: digit === highlightedDigit ? 1 : cell.shading,
       pencilDigits: cell.pencilDigits.includes(digit)
         ? without(cell.pencilDigits, digit)
         : [...cell.pencilDigits, digit],
@@ -109,8 +146,6 @@ export function addOrRemoveGuessDigit(
     newCells[cellIndex] = {
       ...cell,
       digit: newDigit,
-      shading:
-        newDigit !== null && newDigit === highlightedDigit ? 1 : cell.shading,
       pencilDigits: [],
     };
 
@@ -129,37 +164,17 @@ export function addOrRemoveGuessDigit(
   return { ...puzzle, cells: newCells };
 }
 
-export function clearAllHighlights(puzzle: SudokuPuzzle): SudokuPuzzle {
-  const newCells = puzzle.cells.map((cell) =>
-    cell.shading === null ? cell : { ...cell, shading: null }
-  );
-  return { ...puzzle, cells: newCells };
+export function getAllCellsWithErrors(puzzle: SudokuPuzzle): CellCollection {
+  return getInvalidCells(puzzle).filter((cell) => !cell.isGivenDigit);
 }
 
-export function highlightAllCellsWithErrors(
-  puzzle: SudokuPuzzle
-): SudokuPuzzle {
-  const cellIndexesWithErrors = getInvalidCells(puzzle)
-    .filter((cell) => !cell.isGivenDigit)
-    .map((cell) => cell.index);
-  const newCells = puzzle.cells.map((cell) =>
-    cellIndexesWithErrors.includes(cell.index) || cell.digit === null
-      ? { ...cell, shading: 0 as ShadingColor }
-      : { ...cell, shading: null }
-  );
-  return { ...puzzle, cells: newCells };
-}
-
-export function highlightAllCellsForDigit(
+export function getAllCellsForDigit(
   puzzle: SudokuPuzzle,
   digit: CellDigit
-): SudokuPuzzle {
-  const newCells = puzzle.cells.map((cell) =>
-    cell.digit === digit || cell.pencilDigits.includes(digit)
-      ? { ...cell, shading: 1 as ShadingColor }
-      : { ...cell, shading: null }
+): CellCollection {
+  return puzzle.cells.filter(
+    (cell) => cell.digit === digit || cell.pencilDigits.includes(digit)
   );
-  return { ...puzzle, cells: newCells };
 }
 
 export function isValidPuzzle(puzzle: SudokuPuzzle): boolean {
@@ -176,15 +191,12 @@ export function puzzleCellIsGivenDigit(
   return puzzle.cells[cellIndex].isGivenDigit;
 }
 
-export function isSolved(puzzle: SudokuPuzzle): boolean {
-  return (
-    every(puzzle.cells, (cell) => cell.digit) &&
-    getInvalidCells(puzzle).length === 0
-  );
+export function isComplete(puzzle: SudokuPuzzle): boolean {
+  return every(puzzle.cells, (cell) => cell.digit);
 }
 
-export function hasHighlighting(puzzle: SudokuPuzzle): boolean {
-  return some(puzzle.cells, (cell) => cell.shading !== null);
+export function isSolved(puzzle: SudokuPuzzle): boolean {
+  return isComplete(puzzle) && getInvalidCells(puzzle).length === 0;
 }
 
 export function createPuzzleUrl(

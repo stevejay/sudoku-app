@@ -9,6 +9,7 @@ import {
   ColumnConstraint,
   RowConstraint,
 } from "./sudoku-constraints";
+import { CellCollection } from "./sudoku-puzzle.types";
 
 describe("BoxConstraint", () => {
   it("should be constructable", () => {
@@ -71,7 +72,7 @@ describe("BoxConstraint", () => {
         ];
         const cells = createTestCellCollection(invalidCells);
         const result = constraint.getInvalidCells(cells);
-        expect(result).toEqual(invalidCells);
+        expect(result).toEqual<CellCollection>(invalidCells);
       });
     });
 
@@ -83,7 +84,7 @@ describe("BoxConstraint", () => {
         ];
         const cells = createTestCellCollection(invalidCells);
         const result = constraint.getInvalidCells(cells);
-        expect(result).toEqual(invalidCells);
+        expect(result).toEqual<CellCollection>(invalidCells);
       });
     });
 
@@ -161,7 +162,7 @@ describe("RowConstraint", () => {
         ];
         const cells = createTestCellCollection(invalidCells);
         const result = constraint.getInvalidCells(cells);
-        expect(result).toEqual(invalidCells);
+        expect(result).toEqual<CellCollection>(invalidCells);
       });
     });
 
@@ -173,7 +174,7 @@ describe("RowConstraint", () => {
         ];
         const cells = createTestCellCollection(invalidCells);
         const result = constraint.getInvalidCells(cells);
-        expect(result).toEqual(invalidCells);
+        expect(result).toEqual<CellCollection>(invalidCells);
       });
     });
 
@@ -251,7 +252,7 @@ describe("ColumnConstraint", () => {
         ];
         const cells = createTestCellCollection(invalidCells);
         const result = constraint.getInvalidCells(cells);
-        expect(result).toEqual(invalidCells);
+        expect(result).toEqual<CellCollection>(invalidCells);
       });
     });
 
@@ -263,7 +264,7 @@ describe("ColumnConstraint", () => {
         ];
         const cells = createTestCellCollection(invalidCells);
         const result = constraint.getInvalidCells(cells);
-        expect(result).toEqual(invalidCells);
+        expect(result).toEqual<CellCollection>(invalidCells);
       });
     });
 

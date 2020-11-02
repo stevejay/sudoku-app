@@ -10,7 +10,7 @@ import {
   isValidPuzzleString,
   parsePuzzleString,
 } from "./sudoku-puzzle-string";
-import { CellCollection, CellDigit } from "./sudoku-puzzle.types";
+import type { CellCollection, CellDigit } from "./sudoku-puzzle.types";
 
 const BASIC_PUZZLE_STRING =
   "123456789" +
@@ -32,7 +32,7 @@ test.each([
   ],
   [VALID_PUZZLE_STRING, true],
 ])("isValidPuzzleString", (str, expected) => {
-  expect(isValidPuzzleString(str)).toEqual<boolean>(expected);
+  expect(isValidPuzzleString(str)).toEqual(expected);
 });
 
 describe("getPuzzleStringFromLocation", () => {

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import Modal from "react-overlays/Modal";
 import { FaGithub, FaQuestionCircle } from "react-icons/fa";
-// import { faGithub } from "@fortawesome/free-brands-svg-icons";
-// import { faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "./button";
 import { LinkButton } from "./link-button";
 import { InstructionDialog } from "./instruction-dialog";
@@ -28,6 +26,7 @@ export const Nav = () => {
                 onClick={openModal}
               />
               <Modal
+                aria-labelledby="instructions-title"
                 show={showModal}
                 onHide={hideModal}
                 transition={Fade}

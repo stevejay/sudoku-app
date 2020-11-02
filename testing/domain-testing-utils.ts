@@ -1,5 +1,5 @@
 import _ from "lodash";
-import {
+import type {
   Cell,
   CellCollection,
   CellDigit,
@@ -8,35 +8,32 @@ import {
 } from "domain/sudoku-puzzle.types";
 import { STANDARD_SUDOKU_CONSTRAINTS } from "domain/sudoku-constraints";
 
-Object.freeze(STANDARD_SUDOKU_CONSTRAINTS);
+Object.freeze<ConstraintCollection>(STANDARD_SUDOKU_CONSTRAINTS);
 
 export function createGivenDigitCell(index: number, digit: CellDigit): Cell {
-  return Object.freeze({
+  return Object.freeze<Cell>({
     index,
     isGivenDigit: true,
     digit,
     pencilDigits: [],
-    shading: null,
   });
 }
 
 export function createGuessDigitCell(index: number, digit: CellDigit): Cell {
-  return Object.freeze({
+  return Object.freeze<Cell>({
     index,
     isGivenDigit: false,
     digit,
     pencilDigits: [],
-    shading: null,
   });
 }
 
 export function createBlankCell(index: number): Cell {
-  return Object.freeze({
+  return Object.freeze<Cell>({
     index,
     isGivenDigit: false,
     digit: null,
     pencilDigits: [],
-    shading: null,
   });
 }
 
@@ -49,14 +46,20 @@ export function createTestCellCollection(
       cells[cell.index] = cell;
     });
   }
-  return Object.freeze(cells);
+  return Object.freeze<CellCollection>(cells);
+}
+
+export function createCompleteTestSudokuPuzzle() {
+  return createTestSudokuPuzzle(
+    _.range(0, 9 * 9).map((index) => createGuessDigitCell(index, 1))
+  );
 }
 
 export function createTestSudokuPuzzle(
   overrideCells: CellCollection = null,
   constraints: ConstraintCollection = STANDARD_SUDOKU_CONSTRAINTS
 ): SudokuPuzzle {
-  return Object.freeze({
+  return Object.freeze<SudokuPuzzle>({
     cells: createTestCellCollection(overrideCells),
     constraints,
   });

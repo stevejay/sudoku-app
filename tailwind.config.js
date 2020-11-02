@@ -17,6 +17,9 @@ module.exports = {
       maxHeight: {
         "11/12": "91.666667%",
       },
+      boxShadow: {
+        "inset-highlight": "0px 0px 2px 3px #ED64A6 inset",
+      },
     },
   },
   variants: {},

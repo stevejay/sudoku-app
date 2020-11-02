@@ -1,21 +1,34 @@
-import React, { FC } from "react";
+import React, { FC, forwardRef, memo, useRef } from "react";
 import { useRovingTabIndex, useFocusEffect } from "react-roving-tabindex";
-import { getBackgroundShadingClass } from "./get-background-shading-class";
-import { Cell, CellDigit } from "domain/sudoku-puzzle.types";
-import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
+import type { Cell, CellDigit } from "domain/sudoku-puzzle.types";
+import type { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
+import type { CellHighlighting } from "domain/cell-highlighting.types";
+import { isHighlightedCell } from "domain/cell-highlighting";
 
-// on the td: box-shadow: 0px 0px 2px 2px yellow inset;
+function createAriaLabelForCell(
+  cell: Cell,
+  rowIndex: number,
+  columnIndex: number
+): string {
+  const positionText = `Row number ${rowIndex}, column number ${columnIndex}.`;
+  if (cell.isGivenDigit) {
+    return `${positionText} Given digit ${cell.digit}.`;
+  }
+  if (cell.digit) {
+    return `${positionText} Guess digit ${cell.digit}.`;
+  }
+  if (cell.pencilDigits.length) {
+    return `${positionText} Possible digits ${cell.pencilDigits.join(", ")}.`;
+  }
+  return `${positionText} Empty.`;
+}
 
-const Digit: FC<{ cell: Cell }> = ({ cell }) => (
+const DigitContent: FC<{ cell: Cell }> = ({ cell }) => (
   <p
     className={`row-span-3 col-span-3 self-center text-3xl text-center ${
       cell.isGivenDigit
-        ? `font-sans ${
-            cell.shading !== null ? "text-black" : "text-white"
-          } sm:text-4xl`
-        : `font-cursive ${
-            cell.shading !== null ? "text-gray-800" : "text-gray-300"
-          } sm:text-5xl`
+        ? "font-sans text-white sm:text-4xl"
+        : "font-cursive text-gray-300 sm:text-5xl"
     }`}
   >
     {cell.digit}
@@ -24,14 +37,12 @@ const Digit: FC<{ cell: Cell }> = ({ cell }) => (
 
 const DIGITS: CellDigit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const PencilDigits: FC<{ cell: Cell }> = ({ cell }) => (
+const PencilDigitContent: FC<{ cell: Cell }> = ({ cell }) => (
   <>
     {DIGITS.map((digit) => (
       <p
         key={digit}
-        className={`text-xs sm:text-sm text-center ${
-          cell.shading !== null ? "text-gray-800" : "text-gray-300"
-        } font-cursive leading-3 sm:leading-4`}
+        className="text-xs sm:text-sm text-center text-gray-300 font-cursive leading-3 sm:leading-4"
       >
         {cell.pencilDigits.includes(digit) ? digit : ""}
       </p>
@@ -39,76 +50,120 @@ const PencilDigits: FC<{ cell: Cell }> = ({ cell }) => (
   </>
 );
 
+type ImplProps = {
+  rowIndex: number;
+  columnIndex: number;
+  cell: Cell;
+  highlighting: CellHighlighting;
+  send: PuzzleSend;
+  tabIndex: number;
+  onKeyDown: (event: React.KeyboardEvent<Element>) => void;
+  onClick: () => void;
+};
+
+function propsAreEqual(prevProps: ImplProps, nextProps: ImplProps): boolean {
+  return (
+    prevProps.cell === nextProps.cell &&
+    prevProps.highlighting === nextProps.highlighting &&
+    prevProps.tabIndex === nextProps.tabIndex &&
+    prevProps.send === nextProps.send
+  );
+}
+
+const GridCellImpl = memo(
+  forwardRef<HTMLDivElement, ImplProps>(
+    (
+      {
+        rowIndex,
+        columnIndex,
+        cell,
+        highlighting,
+        send,
+        tabIndex,
+        onKeyDown,
+        onClick,
+      },
+      forwardRef
+    ) => {
+      const keyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key >= "1" && event.key <= "9") {
+          send({
+            type: "DIGIT_ENTERED",
+            payload: {
+              index: cell.index,
+              digit: parseInt(event.key, 10) as CellDigit,
+              isPencilDigit: !event.ctrlKey && !event.metaKey && !event.altKey,
+            },
+          });
+        } else if (event.key === "Backspace") {
+          send({ type: "REQUEST_CLEAR_CELL", payload: { index: cell.index } });
+        } else {
+          onKeyDown(event);
+        }
+      };
+
+      const isHighlighted = isHighlightedCell(highlighting, cell);
+
+      return (
+        <td
+          role="gridcell"
+          aria-label={createAriaLabelForCell(cell, rowIndex, columnIndex)}
+          className={`box-content inline-block w-8 h-8 sm:w-12 sm:h-12 p-0 ${
+            columnIndex % 3 === 2 && columnIndex < 8
+              ? "border-r-4 border-gray-500"
+              : "border-r border-gray-700"
+          } ${isHighlighted ? "shadow-inset-highlight" : ""}`}
+        >
+          <div
+            ref={forwardRef}
+            tabIndex={tabIndex}
+            onKeyDown={keyDown}
+            onClick={onClick}
+            className="relative grid grid-rows-3 grid-cols-3 w-8 h-8 sm:w-12 sm:h-12 focus:outline-none focus:shadow-outline focus:border-blue-500 z-10"
+          >
+            {cell.digit && <DigitContent cell={cell} />}
+            {!!cell.pencilDigits.length && <PencilDigitContent cell={cell} />}
+          </div>
+        </td>
+      );
+    }
+  ),
+  propsAreEqual
+);
+
 type Props = {
   rowIndex: number;
   columnIndex: number;
   cell: Cell;
-  creating: boolean;
+  highlighting: CellHighlighting;
   send: PuzzleSend;
 };
 
-const GridCell: FC<Props> = ({
+export const GridCell: FC<Props> = ({
   rowIndex,
   columnIndex,
   cell,
-  creating,
+  highlighting,
   send,
 }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
-  //   const disabled = creating ? false : cell.isGivenDigit;
-
+  const ref = useRef<HTMLDivElement>(null);
   const [tabIndex, focused, handleKeyDown, handleClick] = useRovingTabIndex(
     ref,
-    false, // disabled,
+    false,
     rowIndex
   );
-
   useFocusEffect(focused, ref);
-
-  const keyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key >= "1" && event.key <= "9") {
-      send({
-        type: "DIGIT_ENTERED",
-        payload: {
-          index: cell.index,
-          digit: parseInt(event.key, 10) as CellDigit,
-          isPencilDigit: !event.ctrlKey && !event.metaKey && !event.altKey,
-        },
-      });
-    } else if (event.key === "Backspace") {
-      send({ type: "REQUEST_CLEAR_CELL", payload: { index: cell.index } });
-    } else {
-      handleKeyDown(event);
-    }
-  };
-
   return (
-    <td
-      role="gridcell"
+    <GridCellImpl
+      ref={ref}
+      tabIndex={tabIndex}
+      rowIndex={rowIndex}
+      columnIndex={columnIndex}
+      cell={cell}
+      highlighting={highlighting}
+      send={send}
+      onKeyDown={handleKeyDown}
       onClick={handleClick}
-      className={`box-content inline-block w-8 h-8 sm:w-12 sm:h-12 p-0 ${
-        columnIndex % 3 === 2 && columnIndex < 8
-          ? "border-r-4 border-gray-500"
-          : "border-r border-gray-700"
-      } ${getBackgroundShadingClass(cell.shading)}`}
-    >
-      <div
-        ref={ref}
-        tabIndex={tabIndex}
-        onKeyDown={keyDown}
-        // onKeyDown={(event) => !disabled && keyDown(event)}
-        className="relative grid grid-rows-3 grid-cols-3 w-8 h-8 sm:w-12 sm:h-12 focus:outline-none focus:shadow-outline focus:border-blue-500 z-10"
-      >
-        {cell.digit && <Digit cell={cell} />}
-        {!cell.isGivenDigit && <PencilDigits cell={cell} />}
-      </div>
-    </td>
+    />
   );
 };
-
-export default React.memo(
-  GridCell,
-  (prevProps, nextProps) =>
-    prevProps.cell === nextProps.cell &&
-    prevProps.creating === nextProps.creating
-);

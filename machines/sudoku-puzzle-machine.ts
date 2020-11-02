@@ -1,19 +1,22 @@
+import memoize from "lodash/memoize";
 import slice from "lodash/slice";
-import { actions, assign, createMachine } from "xstate";
+import { assign, createMachine } from "xstate";
 import { STANDARD_SUDOKU_CONSTRAINTS } from "domain/sudoku-constraints";
 import { isValidPuzzleString } from "domain/sudoku-puzzle-string";
 import * as puzzle from "domain/sudoku-puzzle";
-import {
+import * as highlighting from "domain/cell-highlighting";
+import { PuzzleError } from "./sudoku-puzzle-machine.types";
+import type {
   PuzzleContext,
-  PuzzleError,
   PuzzleEvent,
   PuzzleTypestate,
   DigitEnteredEvent,
   RequestClearCellEvent,
-  //   RequestHighlightAllCellsWithDigitEvent,
   RequestSetPuzzleFromPuzzleStringEvent,
   RequestUpdateHighlightedDigitEvent,
 } from "./sudoku-puzzle-machine.types";
+import { SudokuPuzzle } from "domain/sudoku-puzzle.types";
+import { CellHighlighting } from "domain/cell-highlighting.types";
 
 export function getCanUndo(ctx: PuzzleContext): boolean {
   return !!ctx.undoStack.length;
@@ -25,6 +28,27 @@ export function getCanRedo(ctx: PuzzleContext): boolean {
 
 export function getHasCheckpoint(ctx: PuzzleContext): boolean {
   return !!ctx.checkpointPuzzle;
+}
+
+export function getPuzzle(ctx: PuzzleContext): SudokuPuzzle {
+  return ctx.puzzle;
+}
+
+export function getHighlighting(ctx: PuzzleContext): CellHighlighting {
+  return ctx.cellHighlighting;
+}
+
+export function getErrorState(ctx: PuzzleContext): PuzzleContext["errorState"] {
+  return ctx.errorState;
+}
+
+export const getPuzzleIsComplete = memoize(
+  (ctx: PuzzleContext): boolean => puzzle.isComplete(ctx.puzzle),
+  (ctx: PuzzleContext) => ctx.puzzle
+);
+
+export function getIsValidPuzzle(ctx: PuzzleContext): boolean {
+  return puzzle.isValidPuzzle(ctx.puzzle);
 }
 
 function pushCurrentPuzzleStateToUndoStack(ctx: PuzzleContext) {
@@ -39,22 +63,23 @@ function pushCurrentPuzzleStateToUndoStack(ctx: PuzzleContext) {
   return newUndoStack;
 }
 
-// todo
-// - completing a number should do something?
-
 export function createSudokuPuzzleMachine() {
   return createMachine<PuzzleContext, PuzzleEvent, PuzzleTypestate>(
     {
-      initial: "enteringPuzzle",
+      initial: "creatingPuzzle",
       states: {
-        enteringPuzzle: {
+        creatingPuzzle: {
           on: {
-            REQUEST_CLEAR_CELL: { actions: ["createUndoState", "resetCell"] },
+            REQUEST_CLEAR_CELL: {
+              cond: "cellIsNotAlreadyReset",
+              actions: ["createUndoState", "resetCell"],
+            },
             DIGIT_ENTERED: {
-              actions: ["createUndoState", "addGivenDigitToCell"],
+              actions: ["createUndoState", "addOrRemoveGivenDigit"],
             },
             REQUEST_RESET_PUZZLE: {
-              actions: ["createUndoState", "resetPuzzleState"],
+              cond: "puzzleIsNotAlreadyReset",
+              actions: ["createUndoState", "resetPuzzle"],
             },
             REQUEST_SET_PUZZLE_FROM_PUZZLE_STRING: {
               cond: "isValidPuzzleString",
@@ -69,9 +94,10 @@ export function createSudokuPuzzleMachine() {
             {
               cond: "isValidPuzzle",
               target: "solvingPuzzle",
+              actions: ["clearAllHighlights", "resetSolvingState"],
             },
             {
-              target: "enteringPuzzle",
+              target: "creatingPuzzle",
               actions: "setErrorStateToInvalidPuzzle",
             },
           ],
@@ -79,7 +105,9 @@ export function createSudokuPuzzleMachine() {
         solvingPuzzle: {
           on: {
             REQUEST_CLEAR_CELL: {
-              cond: "eventIsNotForGivenDigitCell",
+              // TODO when version 5 of XState is released, replace this guard
+              // with a composite guard (eventIsNotForGivenDigitCell && cellIsNotAlreadyReset)
+              cond: "canResetCellWhileSolvingPuzzle",
               actions: ["createUndoState", "resetCell"],
             },
             DIGIT_ENTERED: {
@@ -87,13 +115,17 @@ export function createSudokuPuzzleMachine() {
               actions: ["createUndoState", "addOrRemoveGuessDigit"],
             },
             REQUEST_RESET_PUZZLE: {
+              cond: "puzzleHasMarkingUp",
               actions: ["createUndoState", "clearAllMarkingUp"],
             },
             REQUEST_CHECK_PUZZLE: [
-              { cond: "isSolvedPuzzle", target: "solvedPuzzle" },
+              {
+                cond: "isSolvedPuzzle",
+                target: "solvedPuzzle",
+                actions: "clearAllHighlights",
+              },
               {
                 actions: [
-                  "createUndoState",
                   "highlightAllCellsWithErrors",
                   "setErrorStateToPuzzleNotSolved",
                 ],
@@ -108,21 +140,17 @@ export function createSudokuPuzzleMachine() {
             },
             REQUEST_CLEAR_ALL_HIGHLIGHTS: {
               cond: "hasHighlighting",
-              actions: ["createUndoState", "clearAllHighlights"],
+              actions: "clearAllHighlights",
             },
-            // REQUEST_HIGHLIGHT_ALL_CELLS_WITH_DIGIT: {
-            //   actions: ["createUndoState", "highlightAllCellsForDigit"],
-            // },
             REQUEST_UPDATE_HIGHLIGHTED_DIGIT: {
-              // TODO might need guard that checks that highlighting will change?
-              actions: ["createUndoState", "updateHighlightedDigit"],
+              actions: "updateHighlightedDigit",
             },
           },
         },
         solvedPuzzle: {
           on: {
             REQUEST_START_ENTERING_PUZZLE: {
-              target: "enteringPuzzle",
+              target: "creatingPuzzle",
               actions: "resetAll",
             },
           },
@@ -140,11 +168,18 @@ export function createSudokuPuzzleMachine() {
           undoStack: [],
           redoStack: [],
           checkpointPuzzle: null,
-          highlightedDigit: null,
+          cellHighlighting: highlighting.createInitialCellHighlighting(),
           errorState: null,
         }),
         resetPuzzle: assign<PuzzleContext, PuzzleEvent>({
           puzzle: puzzle.createPuzzle(STANDARD_SUDOKU_CONSTRAINTS),
+        }),
+        resetSolvingState: assign<PuzzleContext, PuzzleEvent>({
+          undoStack: [],
+          redoStack: [],
+          checkpointPuzzle: null,
+          cellHighlighting: highlighting.createInitialCellHighlighting(),
+          errorState: null,
         }),
         createUndoState: assign<PuzzleContext, PuzzleEvent>({
           undoStack: pushCurrentPuzzleStateToUndoStack,
@@ -168,16 +203,16 @@ export function createSudokuPuzzleMachine() {
         }),
         clearAllMarkingUp: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx) => puzzle.clearAllMarkingUp(ctx.puzzle),
-          highlightedDigit: null,
+          cellHighlighting: highlighting.createInitialCellHighlighting(),
         }),
         resetCell: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx, event: RequestClearCellEvent) =>
             puzzle.resetCell(ctx.puzzle, event.payload.index),
         }),
-        addGivenDigitToCell: assign<PuzzleContext, PuzzleEvent>({
+        addOrRemoveGivenDigit: assign<PuzzleContext, PuzzleEvent>({
           puzzle: (ctx, event: DigitEnteredEvent) => {
             const { index, digit } = event.payload;
-            return puzzle.addGivenDigitToCell(ctx.puzzle, index, digit);
+            return puzzle.addOrRemoveGivenDigit(ctx.puzzle, index, digit);
           },
         }),
         setPuzzleFromPuzzleString: assign<PuzzleContext, PuzzleEvent>({
@@ -192,7 +227,6 @@ export function createSudokuPuzzleMachine() {
               index,
               digit,
               isPencilDigit,
-              null, // TODO replace
               true
             );
           },
@@ -204,25 +238,18 @@ export function createSudokuPuzzleMachine() {
           puzzle: (ctx) => ctx.checkpointPuzzle,
         }),
         clearAllHighlights: assign<PuzzleContext, PuzzleEvent>({
-          puzzle: (ctx) => puzzle.clearAllHighlights(ctx.puzzle),
-          highlightedDigit: null,
+          cellHighlighting: () => highlighting.createInitialCellHighlighting(),
         }),
         highlightAllCellsWithErrors: assign<PuzzleContext, PuzzleEvent>({
-          puzzle: (ctx) => puzzle.highlightAllCellsWithErrors(ctx.puzzle),
-          highlightedDigit: null,
+          cellHighlighting: (ctx) =>
+            highlighting.createCellHighlightingForErrors(ctx.puzzle),
         }),
-        // highlightAllCellsForDigit: assign<PuzzleContext, PuzzleEvent>({
-        //   puzzle: (ctx, event: RequestHighlightAllCellsWithDigitEvent) =>
-        //     puzzle.highlightAllCellsForDigit(ctx.puzzle, event.payload.digit),
-        // }),
         updateHighlightedDigit: assign<PuzzleContext, PuzzleEvent>({
-          highlightedDigit: (
-            ctx,
-            event: RequestUpdateHighlightedDigitEvent
-          ) => {
-            const { digit } = event.payload;
-            return digit === ctx.highlightedDigit ? null : digit;
-          },
+          cellHighlighting: (ctx, event: RequestUpdateHighlightedDigitEvent) =>
+            highlighting.updateHighlightedDigit(
+              ctx.cellHighlighting,
+              event.payload.digit
+            ),
         }),
       },
       guards: {
@@ -239,7 +266,18 @@ export function createSudokuPuzzleMachine() {
         canUndo: getCanUndo,
         canRedo: getCanRedo,
         hasCheckpoint: getHasCheckpoint,
-        hasHighlighting: (ctx) => puzzle.hasHighlighting(ctx.puzzle),
+        hasHighlighting: (ctx) =>
+          highlighting.hasHighlighting(ctx.cellHighlighting),
+        cellIsNotAlreadyReset: (ctx, event: RequestClearCellEvent) =>
+          puzzle.cellIsNotAlreadyReset(ctx.puzzle, event.payload.index),
+        puzzleIsNotAlreadyReset: (ctx) =>
+          puzzle.puzzleIsNotAlreadyReset(ctx.puzzle),
+        puzzleHasMarkingUp: (ctx) => puzzle.puzzleHasMarkingUp(ctx.puzzle),
+        // TODO when version 5 of XState is released, replace this guard
+        // with a composite guard (eventIsNotForGivenDigitCell && cellIsNotAlreadyReset)
+        canResetCellWhileSolvingPuzzle: (ctx, event: RequestClearCellEvent) =>
+          !puzzle.puzzleCellIsGivenDigit(ctx.puzzle, event.payload.index) &&
+          puzzle.cellIsNotAlreadyReset(ctx.puzzle, event.payload.index),
       },
     }
   ).withContext({
@@ -247,7 +285,7 @@ export function createSudokuPuzzleMachine() {
     undoStack: [],
     redoStack: [],
     checkpointPuzzle: null,
-    highlightedDigit: null,
+    cellHighlighting: highlighting.createInitialCellHighlighting(),
     errorState: null,
   });
 }

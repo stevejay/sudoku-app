@@ -6,12 +6,13 @@ import {
 } from "testing/domain-testing-utils";
 import { interpret, Interpreter } from "xstate";
 import { createSudokuPuzzleMachine } from "./sudoku-puzzle-machine";
-import {
+import { PuzzleError } from "./sudoku-puzzle-machine.types";
+import type {
   PuzzleContext,
-  PuzzleError,
   PuzzleEvent,
   PuzzleTypestate,
 } from "./sudoku-puzzle-machine.types";
+import { ConstraintCollection } from "domain/sudoku-puzzle.types";
 
 type InterpreterType = Interpreter<
   PuzzleContext,
@@ -41,13 +42,14 @@ describe("sudokuPuzzleMachine", () => {
 
   describe("when started", () => {
     it("should have the correct initial state", () => {
-      expect(stateValue).toEqual("enteringPuzzle");
+      expect(stateValue).toEqual("creatingPuzzle");
       expect(context).toEqual<PuzzleContext>({
         puzzle: createPuzzle(STANDARD_SUDOKU_CONSTRAINTS),
         undoStack: [],
         redoStack: [],
         checkpointPuzzle: null,
         errorState: null,
+        cellHighlighting: { highlightedDigit: null, highlightedCells: [] },
       });
     });
   });
@@ -59,7 +61,7 @@ describe("sudokuPuzzleMachine", () => {
           type: "REQUEST_SET_PUZZLE_FROM_PUZZLE_STRING",
           payload: { puzzleString: "not possibly valid" },
         });
-        expect(stateValue).toEqual("enteringPuzzle");
+        expect(stateValue).toEqual("creatingPuzzle");
         expect(context.errorState).toBeNull();
       });
     });
@@ -71,8 +73,8 @@ describe("sudokuPuzzleMachine", () => {
             type: "REQUEST_SET_PUZZLE_FROM_PUZZLE_STRING",
             payload: { puzzleString: INVALID_PUZZLE_STRING },
           });
-          expect(stateValue).toEqual("enteringPuzzle");
-          expect(context.errorState).toEqual({
+          expect(stateValue).toEqual("creatingPuzzle");
+          expect(context.errorState).toEqual<PuzzleContext["errorState"]>({
             error: PuzzleError.INVALID_PUZZLE,
           });
         });
@@ -86,7 +88,7 @@ describe("sudokuPuzzleMachine", () => {
           });
           expect(stateValue).toEqual("solvingPuzzle");
           expect(context.errorState).toBeNull();
-          expect(context.puzzle.constraints).toEqual(
+          expect(context.puzzle.constraints).toEqual<ConstraintCollection>(
             STANDARD_SUDOKU_CONSTRAINTS
           );
           expect(context.puzzle.cells.length).toEqual(81);
