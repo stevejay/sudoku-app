@@ -1,4 +1,3 @@
-// import { chain } from "lodash";
 import filter from "lodash/filter";
 import flatten from "lodash/flatten";
 import groupBy from "lodash/groupBy";
@@ -23,19 +22,6 @@ function getInvalidCellsForCellGroup(cells: CellCollection): CellCollection {
       (value) => value.length > 1
     )
   );
-
-  //   return (
-  //     chain(cells)
-  //       // Remove cells not filled in:
-  //       .filter((cell) => !!cell.digit)
-  //       // Group by digit:
-  //       .groupBy((cell) => cell.digit)
-  //       // Keep groups with more than one cell for a digit:
-  //       .filter((value) => value.length > 1)
-  //       // Turn back into an array:
-  //       .flatten()
-  //       .value()
-  //   );
 }
 
 export class BoxConstraint implements IConstraint {

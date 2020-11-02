@@ -204,12 +204,6 @@ export function getInvalidCells(puzzle: SudokuPuzzle): CellCollection {
     ),
     (cell) => cell.index
   );
-
-  //   return chain(puzzle.constraints)
-  //     .map((constraint) => constraint.getInvalidCells(puzzle.cells))
-  //     .flatten()
-  //     .uniqBy((cell) => cell.index)
-  //     .value();
 }
 
 export function getConstraintCellsForCell(
@@ -228,11 +222,4 @@ export function getConstraintCellsForCell(
     ),
     (cell) => cell.index
   );
-
-  //   return chain(puzzle.constraints)
-  //     .map((constraint) => constraint.getConstraintCells(puzzle.cells, cell))
-  //     .flatten()
-  //     .sortBy((cell) => cell.index)
-  //     .sortedUniqBy((cell) => cell.index)
-  //     .value();
 }
