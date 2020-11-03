@@ -1,22 +1,20 @@
-import React, { cloneElement, ComponentType, isValidElement } from "react";
-import { TransitionCallbacks } from "react-overlays/esm/types";
+import React, { cloneElement, FC, isValidElement } from "react";
+import type { TransitionCallbacks } from "react-overlays/esm/types";
 import Transition, { TransitionProps } from "react-transition-group/Transition";
-
-type TransitionComponent = ComponentType<
-  {
-    in: boolean;
-    appear?: boolean;
-    unmountOnExit?: boolean;
-  } & TransitionCallbacks &
-    TransitionProps
->;
 
 const FADE_STYLES = {
   entering: "opacity-100",
   entered: "opacity-100",
 };
 
-export const Fade: TransitionComponent = ({ children, ...props }) => (
+type Props = {
+  in: boolean;
+  appear?: boolean;
+  unmountOnExit?: boolean;
+} & TransitionCallbacks &
+  TransitionProps;
+
+export const FadeTransition: FC<Props> = ({ children, ...props }) => (
   <Transition {...props} timeout={200}>
     {(status) =>
       isValidElement(children)

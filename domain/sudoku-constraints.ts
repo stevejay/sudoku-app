@@ -4,7 +4,7 @@ import groupBy from "lodash/groupBy";
 import slice from "lodash/slice";
 import range from "lodash/range";
 import remove from "lodash/remove";
-import type {
+import {
   Cell,
   CellCollection,
   ConstraintCollection,

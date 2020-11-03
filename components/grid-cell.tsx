@@ -1,16 +1,18 @@
 import React, { FC, forwardRef, memo, useRef } from "react";
 import { useRovingTabIndex, useFocusEffect } from "react-roving-tabindex";
-import type { Cell, CellDigit } from "domain/sudoku-puzzle.types";
-import type { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
-import type { CellHighlighting } from "domain/cell-highlighting.types";
+import { Cell, CellDigit } from "domain/sudoku-puzzle.types";
+import { CellHighlighting } from "domain/cell-highlighting.types";
 import { isHighlightedCell } from "domain/cell-highlighting";
+import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 
 function createAriaLabelForCell(
   cell: Cell,
   rowIndex: number,
   columnIndex: number
 ): string {
-  const positionText = `Row number ${rowIndex}, column number ${columnIndex}.`;
+  const positionText = `Row number ${rowIndex + 1}, column number ${
+    columnIndex + 1
+  }.`;
   if (cell.isGivenDigit) {
     return `${positionText} Given digit ${cell.digit}.`;
   }
@@ -23,7 +25,7 @@ function createAriaLabelForCell(
   return `${positionText} Empty.`;
 }
 
-const DigitContent: FC<{ cell: Cell }> = ({ cell }) => (
+const DigitGridCellContent: FC<{ cell: Cell }> = ({ cell }) => (
   <p
     className={`row-span-3 col-span-3 self-center text-3xl text-center ${
       cell.isGivenDigit
@@ -37,7 +39,7 @@ const DigitContent: FC<{ cell: Cell }> = ({ cell }) => (
 
 const DIGITS: CellDigit[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const PencilDigitContent: FC<{ cell: Cell }> = ({ cell }) => (
+const PencilDigitsGridCellContent: FC<{ cell: Cell }> = ({ cell }) => (
   <>
     {DIGITS.map((digit) => (
       <p
@@ -121,8 +123,10 @@ const GridCellImpl = memo(
             onClick={onClick}
             className="relative grid grid-rows-3 grid-cols-3 w-8 h-8 sm:w-12 sm:h-12 focus:outline-none focus:shadow-outline focus:border-blue-500 z-10"
           >
-            {cell.digit && <DigitContent cell={cell} />}
-            {!!cell.pencilDigits.length && <PencilDigitContent cell={cell} />}
+            {cell.digit && <DigitGridCellContent cell={cell} />}
+            {!!cell.pencilDigits.length && (
+              <PencilDigitsGridCellContent cell={cell} />
+            )}
           </div>
         </td>
       );

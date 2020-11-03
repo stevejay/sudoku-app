@@ -10,7 +10,7 @@ import {
   isValidPuzzleString,
   parsePuzzleString,
 } from "./sudoku-puzzle-string";
-import type { CellCollection, CellDigit } from "./sudoku-puzzle.types";
+import { CellCollection, CellDigit } from "./sudoku-puzzle.types";
 
 const BASIC_PUZZLE_STRING =
   "123456789" +

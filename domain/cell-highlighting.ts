@@ -1,6 +1,6 @@
-import type { CellHighlighting } from "./cell-highlighting.types";
+import { CellHighlighting } from "./cell-highlighting.types";
 import { getAllCellsWithErrors } from "./sudoku-puzzle";
-import type { Cell, CellDigit, SudokuPuzzle } from "./sudoku-puzzle.types";
+import { Cell, CellDigit, SudokuPuzzle } from "./sudoku-puzzle.types";
 
 export function createInitialCellHighlighting(): CellHighlighting {
   return {

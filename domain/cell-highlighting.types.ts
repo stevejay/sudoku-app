@@ -1,4 +1,4 @@
-import type { CellDigit } from "./sudoku-puzzle.types";
+import { CellDigit } from "./sudoku-puzzle.types";
 
 // highlightedCells takes precedence over highlightedDigit.
 export type CellHighlighting = Readonly<{

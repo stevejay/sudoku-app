@@ -1,8 +1,8 @@
 import React, { FC, memo } from "react";
 import { RovingTabIndexProvider } from "react-roving-tabindex";
-import type { SudokuPuzzle } from "domain/sudoku-puzzle.types";
-import type { CellHighlighting } from "domain/cell-highlighting.types";
-import type { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
+import { SudokuPuzzle } from "domain/sudoku-puzzle.types";
+import { CellHighlighting } from "domain/cell-highlighting.types";
+import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
 import { GridCell } from "./grid-cell";
 
 const INDICES: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
@@ -27,9 +27,9 @@ export const Grid: FC<Props> = memo(
       <table
         role="grid"
         aria-label="Sudoku puzzle to solve"
-        className="border-collapse select-none flex-shrink-0"
+        className="flex border-collapse select-none"
       >
-        <tbody className="border-4 border-gray-500">
+        <tbody className="flex-grow-0 flex-shrink-0 border-4 border-gray-500">
           {INDICES.map((rowIndex) => (
             <tr
               key={rowIndex}

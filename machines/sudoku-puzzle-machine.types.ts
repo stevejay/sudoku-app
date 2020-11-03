@@ -1,7 +1,7 @@
 import type { EventData } from "xstate";
-import type { CellDigit, SudokuPuzzle } from "domain/sudoku-puzzle.types";
-import type { PuzzleString } from "domain/sudoku-puzzle-string.types";
-import type { CellHighlighting } from "domain/cell-highlighting.types";
+import { CellDigit, SudokuPuzzle } from "domain/sudoku-puzzle.types";
+import { PuzzleString } from "domain/sudoku-puzzle-string.types";
+import { CellHighlighting } from "domain/cell-highlighting.types";
 
 export enum PuzzleError {
   INVALID_PUZZLE = "INVALID_PUZZLE",

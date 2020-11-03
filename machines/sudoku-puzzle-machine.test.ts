@@ -6,8 +6,8 @@ import {
 } from "testing/domain-testing-utils";
 import { interpret, Interpreter } from "xstate";
 import { createSudokuPuzzleMachine } from "./sudoku-puzzle-machine";
-import { PuzzleError } from "./sudoku-puzzle-machine.types";
-import type {
+import {
+  PuzzleError,
   PuzzleContext,
   PuzzleEvent,
   PuzzleTypestate,

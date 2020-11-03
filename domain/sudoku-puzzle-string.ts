@@ -1,5 +1,5 @@
-import type { PuzzleString } from "./sudoku-puzzle-string.types";
-import type { CellCollection, CellDigit } from "./sudoku-puzzle.types";
+import { PuzzleString } from "./sudoku-puzzle-string.types";
+import { CellCollection, CellDigit } from "./sudoku-puzzle.types";
 
 export function isValidPuzzleString(puzzleString: PuzzleString): boolean {
   return /^[\.1-9]{81}$/.test(puzzleString);

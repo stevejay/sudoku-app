@@ -5,8 +5,8 @@ import { STANDARD_SUDOKU_CONSTRAINTS } from "domain/sudoku-constraints";
 import { isValidPuzzleString } from "domain/sudoku-puzzle-string";
 import * as puzzle from "domain/sudoku-puzzle";
 import * as highlighting from "domain/cell-highlighting";
-import { PuzzleError } from "./sudoku-puzzle-machine.types";
-import type {
+import {
+  PuzzleError,
   PuzzleContext,
   PuzzleEvent,
   PuzzleTypestate,
@@ -44,6 +44,11 @@ export function getErrorState(ctx: PuzzleContext): PuzzleContext["errorState"] {
 
 export const getPuzzleIsComplete = memoize(
   (ctx: PuzzleContext): boolean => puzzle.isComplete(ctx.puzzle),
+  (ctx: PuzzleContext) => ctx.puzzle
+);
+
+export const getCanResetWhileCreating = memoize(
+  (ctx: PuzzleContext): boolean => puzzle.puzzleIsNotAlreadyReset(ctx.puzzle),
   (ctx: PuzzleContext) => ctx.puzzle
 );
 
@@ -251,6 +256,9 @@ export function createSudokuPuzzleMachine() {
               event.payload.digit
             ),
         }),
+        // FOOBAR: assign<PuzzleContext, PuzzleEvent>({
+        //   puzzle: (ctx) => puzzle.markUpAllCellsWithoutGuesses(ctx.puzzle),
+        // }),
       },
       guards: {
         isValidPuzzle: (ctx) => puzzle.isValidPuzzle(ctx.puzzle),

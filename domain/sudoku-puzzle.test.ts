@@ -29,7 +29,7 @@ import {
   addOrRemoveGivenDigit,
   isComplete,
 } from "./sudoku-puzzle";
-import type { Cell, CellCollection, SudokuPuzzle } from "./sudoku-puzzle.types";
+import { Cell, CellCollection, SudokuPuzzle } from "./sudoku-puzzle.types";
 
 describe("createPuzzle", () => {
   it("should create a valid puzzle", () => {

@@ -1,5 +1,5 @@
 import _ from "lodash";
-import type {
+import {
   Cell,
   CellCollection,
   CellDigit,

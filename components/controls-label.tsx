@@ -5,7 +5,7 @@ type Props = {
   id?: string;
 };
 
-export const ToolbarLabel: FC<Props> = ({ label, id }) => (
+export const ControlsLabel: FC<Props> = ({ label, id }) => (
   <label
     id={id}
     className="block text-xs uppercase text-gray-500 border-b border-gray-700"

@@ -2,6 +2,7 @@ import every from "lodash/every";
 import flatten from "lodash/flatten";
 import range from "lodash/range";
 import slice from "lodash/slice";
+import some from "lodash/some";
 import sortBy from "lodash/sortBy";
 import sortedUniqBy from "lodash/sortedUniqBy";
 import without from "lodash/without";
@@ -11,14 +12,13 @@ import {
   parsePuzzleString,
   createPuzzleStringFromCellCollection,
 } from "./sudoku-puzzle-string";
-import type {
+import {
   Cell,
   CellCollection,
   CellDigit,
   ConstraintCollection,
   SudokuPuzzle,
 } from "./sudoku-puzzle.types";
-import { some } from "lodash";
 
 function createEmptyCell(index: number): Cell {
   return {

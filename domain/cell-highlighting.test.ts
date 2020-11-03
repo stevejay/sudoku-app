@@ -10,8 +10,8 @@ import {
   isHighlightedCell,
   hasHighlighting,
 } from "./cell-highlighting";
-import type { CellHighlighting } from "./cell-highlighting.types";
-import type { Cell, CellDigit } from "./sudoku-puzzle.types";
+import { CellHighlighting } from "./cell-highlighting.types";
+import { Cell, CellDigit } from "./sudoku-puzzle.types";
 
 describe("createInitialCellHighlighting", () => {
   it("should create a valid instance", () => {
