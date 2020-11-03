@@ -1,20 +1,13 @@
-Tailwind config example:
-https://github.com/vercel/next.js/tree/canary/examples/with-tailwindcss
+# sudoku-app
 
-TypeScript config example:
-https://github.com/vercel/next.js/tree/canary/examples/with-typescript
+> Simple Sudoku React Web app demonstrating usage of XState and Tailwind CSS.
 
-Jest with Testing Library config example:
+## Useful links
 
-https://github.com/vercel/next.js/tree/master/examples/with-jest
+- [Tailwind config example](https://github.com/vercel/next.js/tree/canary/examples/with-tailwindcss) for Next.js.
+- [TypeScript config example](https://github.com/vercel/next.js/tree/canary/examples/with-typescript) for Next.js.
+- [Jest with Testing Library config example](https://github.com/vercel/next.js/tree/master/examples/with-jest) for Next.js.
 
-XState testing:
+## License
 
-- https://swizec.com/blog/how-to-write-tests-for-xstate-codewithswiz-12
-- or try the model testing thing
-
-## TODO
-
-- How much is rendering on each input action??
-- aria labels on cells and toolbars
-- can xstate be replaced by the mini version?
+MIT © [stevejay](https://github.com/stevejay)
