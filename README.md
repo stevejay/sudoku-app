@@ -2,7 +2,7 @@
 
 > Simple Sudoku React Web app demonstrating usage of XState and Tailwind CSS.
 
-A deployment of this app can be found [here](https://sudoku-app-eta.vercel.app/).
+A deployment of this app can be found [here](https://sudoku-app.stevejay.vercel.app/).
 
 ## Useful links
 
@@ -13,6 +13,7 @@ A deployment of this app can be found [here](https://sudoku-app-eta.vercel.app/)
 ## TODO
 
 - Simple form of persistence, maybe just piggy-backing off the checkpoint feature.
+- Mobile entry.
 
 ## License
 

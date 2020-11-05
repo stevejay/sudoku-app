@@ -30,7 +30,7 @@ const DigitGridCellContent: FC<{ cell: Cell }> = ({ cell }) => (
     className={`row-span-3 col-span-3 self-center text-3xl text-center ${
       cell.isGivenDigit
         ? "font-sans text-white sm:text-4xl"
-        : "font-cursive text-gray-300 sm:text-5xl"
+        : "font-cursive text-gray-400 sm:text-5xl"
     }`}
   >
     {cell.digit}
@@ -44,7 +44,7 @@ const PencilDigitsGridCellContent: FC<{ cell: Cell }> = ({ cell }) => (
     {DIGITS.map((digit) => (
       <p
         key={digit}
-        className="text-xs sm:text-sm text-center text-gray-300 font-cursive leading-3 sm:leading-4"
+        className="text-xs sm:text-sm text-center text-gray-400 font-cursive leading-3 sm:leading-4"
       >
         {cell.pencilDigits.includes(digit) ? digit : ""}
       </p>
@@ -143,7 +143,7 @@ type Props = {
   send: PuzzleSend;
 };
 
-export const GridCell: FC<Props> = ({
+export const SudokuGridCell: FC<Props> = ({
   rowIndex,
   columnIndex,
   cell,

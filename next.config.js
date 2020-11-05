@@ -5,11 +5,12 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 module.exports = withBundleAnalyzer({
+  basePath: "/sudoku-app",
+  assetsPrefix: "/sudoku-app",
   webpack: (config) => {
     config.node = {
       fs: "empty",
     };
-
     config.plugins.push(
       new CircularDependencyPlugin({
         exclude: /node_modules/,
@@ -20,7 +21,6 @@ module.exports = withBundleAnalyzer({
         cwd: process.cwd(),
       })
     );
-
     return config;
   },
 });

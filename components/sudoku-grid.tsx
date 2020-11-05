@@ -3,7 +3,7 @@ import { RovingTabIndexProvider } from "react-roving-tabindex";
 import { SudokuPuzzle } from "domain/sudoku-puzzle.types";
 import { CellHighlighting } from "domain/cell-highlighting.types";
 import { PuzzleSend } from "machines/sudoku-puzzle-machine.types";
-import { GridCell } from "./grid-cell";
+import { SudokuGridCell } from "./sudoku-grid-cell";
 
 const INDICES: readonly number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -21,7 +21,7 @@ function propsAreEqual(prevProps: Props, nextProps: Props): boolean {
   );
 }
 
-export const Grid: FC<Props> = memo(
+export const SudokuGrid: FC<Props> = memo(
   ({ puzzle, highlighting, send }) => (
     <RovingTabIndexProvider allowFocusOnClick={true}>
       <table
@@ -40,7 +40,7 @@ export const Grid: FC<Props> = memo(
               }
             >
               {INDICES.map((columnIndex) => (
-                <GridCell
+                <SudokuGridCell
                   key={columnIndex}
                   rowIndex={rowIndex}
                   columnIndex={columnIndex}

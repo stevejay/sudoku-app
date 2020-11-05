@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useMachine } from "@xstate/react";
-import { Grid } from "components/grid";
+import { SudokuGrid } from "components/sudoku-grid";
 import { getPuzzleStringFromLocation } from "domain/sudoku-puzzle-string";
 import { createPuzzleUrl } from "domain/sudoku-puzzle";
 import {
@@ -66,7 +66,7 @@ export const MainContent = () => {
   return (
     <main className="flex flex-grow items-center justify-center py-5 sm:py-8">
       <div className="grid grid-flow-row sm:grid-flow-col justify-center gap-8">
-        <Grid puzzle={puzzle} highlighting={highlighting} send={send} />
+        <SudokuGrid puzzle={puzzle} highlighting={highlighting} send={send} />
         {state.value === "creatingPuzzle" && (
           <CreatingPuzzleControls
             send={send}
