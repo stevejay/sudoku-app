@@ -256,9 +256,6 @@ export function createSudokuPuzzleMachine() {
               event.payload.digit
             ),
         }),
-        // FOOBAR: assign<PuzzleContext, PuzzleEvent>({
-        //   puzzle: (ctx) => puzzle.markUpAllCellsWithoutGuesses(ctx.puzzle),
-        // }),
       },
       guards: {
         isValidPuzzle: (ctx) => puzzle.isValidPuzzle(ctx.puzzle),

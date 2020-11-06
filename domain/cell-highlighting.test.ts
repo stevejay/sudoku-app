@@ -9,6 +9,7 @@ import {
   createCellHighlightingForErrors,
   isHighlightedCell,
   hasHighlighting,
+  updateHighlightedDigit,
 } from "./cell-highlighting";
 import { CellHighlighting } from "./cell-highlighting.types";
 import { Cell, CellDigit } from "./sudoku-puzzle.types";
@@ -126,6 +127,21 @@ describe("hasHighlighting", () => {
       };
       const result = hasHighlighting(cellHighlighting);
       expect(result).toEqual(true);
+    });
+  });
+});
+
+describe("updateHighlightedDigit", () => {
+  it("should update the highlighted digit", () => {
+    const cellHighlighting: CellHighlighting = {
+      highlightedDigit: 1,
+      highlightedCells: [1, 2, 3],
+    };
+    const NEW_DIGIT: CellDigit = 1;
+    const result = updateHighlightedDigit(cellHighlighting, NEW_DIGIT);
+    expect(result).toEqual<CellHighlighting>({
+      highlightedDigit: NEW_DIGIT,
+      highlightedCells: [],
     });
   });
 });

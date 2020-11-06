@@ -31,20 +31,6 @@ export function updateHighlightedDigit(
   };
 }
 
-// TODO test or remove
-export function toggleHighlightedDigit(
-  cellHighlighting: CellHighlighting,
-  digit: CellDigit
-): CellHighlighting {
-  return {
-    highlightedDigit:
-      digit !== null && cellHighlighting.highlightedDigit === digit
-        ? null
-        : digit,
-    highlightedCells: [],
-  };
-}
-
 export function isHighlightedCell(
   cellHighlighting: CellHighlighting,
   cell: Cell

@@ -29,8 +29,6 @@ function createEmptyCell(index: number): Cell {
   };
 }
 
-// TODO rows, columns
-
 export function createPuzzle(
   initialConstraints: ConstraintCollection
 ): SudokuPuzzle {
