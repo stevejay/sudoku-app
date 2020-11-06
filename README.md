@@ -14,6 +14,7 @@ A deployment of this app can be found [here](https://sudoku-app.stevejay.vercel.
 
 - Simple form of persistence, maybe just piggy-backing off the checkpoint feature.
 - Mobile entry.
+- CSP: If you're using a Content Security Policy (CSP), be sure you’ve allowed the Domain vitals.vercel-analytics.com.
 
 ## License
 

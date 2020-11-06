@@ -5,8 +5,8 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 module.exports = withBundleAnalyzer({
-  basePath: "/sudoku-app",
-  assetsPrefix: "/sudoku-app",
+  //   basePath: "/sudoku-app",
+  //   assetsPrefix: "/sudoku-app",
   webpack: (config) => {
     config.node = {
       fs: "empty",
