@@ -1,5 +1,5 @@
 import React, { forwardRef, ReactNode } from "react";
-import { RenderModalDialogProps } from "react-overlays/Modal";
+import type { RenderModalDialogProps } from "react-overlays/Modal";
 import { FaTimes } from "react-icons/fa";
 
 type Props = RenderModalDialogProps & {
