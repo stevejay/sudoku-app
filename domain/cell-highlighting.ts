@@ -20,7 +20,6 @@ export function createCellHighlightingForErrors(
   };
 }
 
-// TODO test or remove
 export function updateHighlightedDigit(
   _: CellHighlighting,
   digit: CellDigit | null

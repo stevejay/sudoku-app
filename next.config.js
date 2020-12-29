@@ -14,9 +14,6 @@ module.exports = withBundleAnalyzer({
     config.plugins.push(
       new CircularDependencyPlugin({
         exclude: /node_modules/,
-        // // include specific files based on a RegExp
-        // include: /domain/,
-        // add errors to webpack instead of warnings
         failOnError: true,
         cwd: process.cwd(),
       })
