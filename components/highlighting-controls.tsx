@@ -26,7 +26,7 @@ export const HighlightingControls: FC<Props> = memo(
     <div role="toolbar" aria-labelledby="highlight-label" className="space-y-2">
       <ControlsLabel id="highlight-label" label="Highlight" />
       <div className="grid grid-cols-3 grid-rows-3 gap-2">
-        <RovingTabIndexProvider allowFocusOnClick={true}>
+        <RovingTabIndexProvider>
           {INDICES.map((index) => (
             <ButtonWithRovingTabIndex
               key={index}

@@ -23,7 +23,7 @@ function propsAreEqual(prevProps: Props, nextProps: Props): boolean {
 
 export const SudokuGrid: FC<Props> = memo(
   ({ puzzle, highlighting, send }) => (
-    <RovingTabIndexProvider allowFocusOnClick={true}>
+    <RovingTabIndexProvider>
       <table
         role="grid"
         aria-label="Sudoku puzzle to solve"
