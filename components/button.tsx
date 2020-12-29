@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
       onClick={onClick}
       onKeyDown={onKeyDown}
       disabled={disabled}
-      className={`inline-block border border-gray-600 text-white font-light uppercase py-1 px-3 rounded focus:outline-none focus:shadow-outline ${
+      className={`inline-block border border-gray-600 text-white font-light uppercase py-1 px-3 rounded focus:outline-none focus:ring focus:border-blue-300 ${
         primary ? "bg-purple-700" : "bg-gray-800"
       } ${compact ? "text-sm" : ""} ${
         disabled

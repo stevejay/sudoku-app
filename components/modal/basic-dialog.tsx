@@ -27,12 +27,12 @@ export const BasicDialog = forwardRef<HTMLDivElement, Props>(
       {...props}
       role="document"
       ref={forwardedRef}
-      className={`absolute z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col w-10/12 max-w-screen-md max-h-11/12 border border-gray-400 shadow-lg py-5 bg-gray-900 rounded-lg focus:outline-none focus:shadow-outline ${className}`}
+      className={`absolute z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col w-10/12 max-w-screen-md max-h-11/12 border border-gray-400 shadow-lg py-5 bg-gray-900 rounded-lg focus:outline-none focus:ring focus:border-blue-300 ${className}`}
     >
       {!!onHide && (
         <button
           aria-label="Close dialog"
-          className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-400 bg-gray-900 shadow-lg focus:outline-none focus:shadow-outline"
+          className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-gray-400 bg-gray-900 shadow-lg focus:outline-none focus:ring focus:border-blue-300"
           onClick={onHide}
           autoFocus
         >

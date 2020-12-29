@@ -121,7 +121,7 @@ const GridCellImpl = memo(
             tabIndex={tabIndex}
             onKeyDown={keyDown}
             onClick={onClick}
-            className="relative grid grid-rows-3 grid-cols-3 w-8 h-8 sm:w-12 sm:h-12 focus:outline-none focus:shadow-outline focus:border-blue-500 z-10"
+            className="relative grid grid-rows-3 grid-cols-3 w-8 h-8 sm:w-12 sm:h-12 focus:outline-none focus:ring focus:border-blue-500 z-10"
           >
             {cell.digit && <DigitGridCellContent cell={cell} />}
             {!!cell.pencilDigits.length && (
